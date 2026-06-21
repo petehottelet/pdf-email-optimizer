@@ -70,6 +70,11 @@ class SamplePlan:
     # When set, this overrides the Python optimizer entirely.
     ghostscript_image_dpi: int | None = None
     ghostscript_jpeg_quality: int | None = None
+    # For archival typeset / line-art scans, route through the bilevel CCITT
+    # G4 (fax) strategy at this DPI. Destructive (drops all color/grayscale
+    # info) so it's never auto-selected - it's an explicit per-sample opt-in.
+    bilevel_dpi: int | None = None
+    bilevel_threshold: int | None = None
     # When the user's starting point is an office document, point this at the
     # original .pptx/.xlsx/.docx in ``00_project_files/Sample Documents/`` so
     # the chart/table headline reports "this 36 MB PPTX shrank to a 2 MB
@@ -147,11 +152,11 @@ SAMPLE_PLANS: list[SamplePlan] = [
         label="Archival scan (1976, A)",
         category="archival_scan",
         source_name="19760021505.pdf",
-        target_mb=21.0,
+        target_mb=7.0,
         profile="balanced",
-        description="33 MB, 606-page archival scan. The Python ladder cannot decode embedded JBIG2 images (needs jbig2dec), so we fall back to Ghostscript pdfwrite at 96 DPI / JPEG q=78. Result is pixel-identical (PSNR infinity) because the page-stream rewrite drops structural fat without re-rasterizing.",
-        ghostscript_image_dpi=96,
-        ghostscript_jpeg_quality=78,
+        description="33 MB, 606-page archival typeset NASA scan. The Python image ladder cannot decode the embedded JBIG2 images, and Ghostscript pdfwrite cannot get the file under 20 MB. Routed through the optimizer's bilevel CCITT G4 (fax) strategy at 75 DPI - destructive (color/grayscale are thresholded to 1-bit) but appropriate for typeset text + line-art content, and lands in the user's email window.",
+        bilevel_dpi=75,
+        bilevel_threshold=200,
     ),
     SamplePlan(
         sample_id="archive_scan_1976b",
@@ -305,7 +310,13 @@ def run_plan(plan: SamplePlan, input_dir: Path, output_dir: Path, office_dir: Pa
 
     started = time.perf_counter()
     try:
-        if plan.ghostscript_image_dpi is not None:
+        if plan.bilevel_dpi is not None:
+            args = _args_for(plan, source, output)
+            args.bilevel = plan.bilevel_dpi
+            if plan.bilevel_threshold is not None:
+                args.bilevel_threshold = plan.bilevel_threshold
+            summary = optimize(args)
+        elif plan.ghostscript_image_dpi is not None:
             summary = _run_ghostscript(plan, source, output)
         else:
             summary = optimize(_args_for(plan, source, output))

@@ -20,6 +20,7 @@ from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PdfReadError
 from pypdf.generic import NameObject
 
+from . import bilevel as bilevel_strategy
 from .pikepdf_backend import structural_optimize as pikepdf_structural_optimize
 
 logging.getLogger("pypdf").setLevel(logging.ERROR)
@@ -495,17 +496,26 @@ def compare_render_quality(
         original_image = render_pdf_page(original_path, page_index, scale)
         candidate_image = render_pdf_page(candidate_path, page_index, scale)
         if original_image.size != candidate_image.size:
-            page_results.append(
-                {
-                    "page": page_index + 1,
-                    "same_size": False,
-                    "original_size": original_image.size,
-                    "candidate_size": candidate_image.size,
-                }
-            )
-            worst_rms = float("inf")
-            worst_psnr = 0.0
-            continue
+            # Sub-point page rounding (e.g. img2pdf-derived pages) can yield
+            # 1-2 pixel deltas at the QA scale. Resize the candidate to match
+            # the original so we can still compute a meaningful PSNR; tag the
+            # result so callers know the comparison was approximated.
+            ow, oh = original_image.size
+            cw, ch = candidate_image.size
+            if abs(ow - cw) <= 4 and abs(oh - ch) <= 4:
+                candidate_image = candidate_image.resize(original_image.size, Image.LANCZOS)
+            else:
+                page_results.append(
+                    {
+                        "page": page_index + 1,
+                        "same_size": False,
+                        "original_size": original_image.size,
+                        "candidate_size": candidate_image.size,
+                    }
+                )
+                worst_rms = float("inf")
+                worst_psnr = 0.0
+                continue
 
         diff = ImageChops.difference(original_image, candidate_image)
         stat = ImageStat.Stat(diff)
@@ -784,6 +794,86 @@ def audit_pdf(input_path: Path) -> dict[str, Any]:
     return audit
 
 
+def _optimize_bilevel_pipeline(
+    *,
+    args: argparse.Namespace,
+    input_path: Path,
+    output_path: Path,
+    target: dict[str, Any],
+    inspection: dict[str, Any],
+) -> dict[str, Any]:
+    """Run the ``--bilevel`` short-circuit and return a summary in the standard shape.
+
+    Skips the entire image-recompress ladder and the Ghostscript fallback: when
+    a user explicitly asks for bilevel they've already accepted a fully
+    destructive conversion, so the only useful work is the bilevel pass itself
+    plus optional render-QA reporting.
+    """
+
+    bilevel_result = bilevel_strategy.optimize_bilevel(
+        input_path,
+        output_path,
+        dpi=int(args.bilevel),
+        threshold=int(args.bilevel_threshold),
+    )
+    all_warnings: list[str] = list(inspection.get("warnings", []))
+    all_warnings.extend(bilevel_result.get("warnings", []))
+
+    if args.render_qa:
+        try:
+            qa = compare_render_quality(
+                input_path,
+                output_path,
+                scale=args.qa_scale,
+                max_pages=args.qa_max_pages,
+            )
+            bilevel_result["render_qa"] = qa
+        except Exception as exc:  # noqa: BLE001
+            all_warnings.append(f"Render QA unavailable for bilevel output: {exc}")
+
+    output_bytes = file_size(output_path)
+    max_target_bytes = target["max_bytes"]
+    min_target_bytes = target["min_bytes"]
+    within_target_range = result_in_target_window(
+        {"size_bytes": output_bytes},
+        min_target_bytes,
+        max_target_bytes,
+    )
+    if min_target_bytes is not None and output_bytes < min_target_bytes:
+        all_warnings.append(
+            "Output is below the requested range. Bilevel conversion is one-shot; "
+            "rerun with a higher --bilevel DPI to land back inside the window."
+        )
+
+    all_warnings = unique_warnings(all_warnings)
+    summary = {
+        "input": str(input_path),
+        "output": str(output_path),
+        "profile": args.profile,
+        "input_bytes": file_size(input_path),
+        "output_bytes": output_bytes,
+        "input_mb": round(bytes_to_mb(file_size(input_path)), 3),
+        "output_mb": round(bytes_to_mb(output_bytes), 3),
+        "target_mb": target["max_mb"],
+        "target_min_mb": target["min_mb"],
+        "target_label": target["label"],
+        "preferred_mb": target["preferred_mb"],
+        "met_target": output_bytes <= max_target_bytes,
+        "within_target_range": within_target_range,
+        "strategy": bilevel_result["strategy"],
+        "pages": bilevel_result["pages"],
+        "private_removed": {},
+        "image_stats": None,
+        "render_qa": bilevel_result.get("render_qa"),
+        "quality_ok": True,
+        "bilevel_dpi": bilevel_result["bilevel_dpi"],
+        "bilevel_threshold": bilevel_result["bilevel_threshold"],
+        "feature_warnings": inspection,
+        "warnings": all_warnings,
+    }
+    return summary
+
+
 def optimize(args: argparse.Namespace) -> dict[str, Any]:
     args = apply_profile_defaults(args)
     input_path = Path(args.input_pdf).expanduser().resolve()
@@ -802,6 +892,15 @@ def optimize(args: argparse.Namespace) -> dict[str, Any]:
     inspection = inspect_pdf_features(input_path)
     if inspection["encrypted"]:
         raise PdfReadError("Encrypted PDFs must be unlocked before optimization.")
+
+    if getattr(args, "bilevel", None) is not None:
+        return _optimize_bilevel_pipeline(
+            args=args,
+            input_path=input_path,
+            output_path=output_path,
+            target=target,
+            inspection=inspection,
+        )
     all_warnings: list[str] = list(inspection.get("warnings", []))
     results: list[dict[str, Any]] = []
 
@@ -1141,6 +1240,30 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-render-rms", type=float, default=None, help="Maximum render RMS difference for render QA.")
     parser.add_argument("--qa-scale", type=float, default=None, help="Render scale used for QA.")
     parser.add_argument("--qa-max-pages", type=int, default=None, help="Maximum pages to render for QA.")
+    parser.add_argument(
+        "--bilevel",
+        type=int,
+        nargs="?",
+        const=bilevel_strategy.DEFAULT_DPI,
+        default=None,
+        metavar="DPI",
+        help=(
+            "Render every page as 1-bit black & white at the given DPI "
+            f"(default {bilevel_strategy.DEFAULT_DPI}) and emit a CCITT G4 (fax) PDF. "
+            "Use only on typeset / line-art archival scans - all color and "
+            "grayscale information is destroyed."
+        ),
+    )
+    parser.add_argument(
+        "--bilevel-threshold",
+        type=int,
+        default=bilevel_strategy.DEFAULT_THRESHOLD,
+        metavar="N",
+        help=(
+            "Brightness cutoff (0-255) for --bilevel conversion. Pixels brighter "
+            f"than N become white, the rest black. Default {bilevel_strategy.DEFAULT_THRESHOLD}."
+        ),
+    )
     parser.add_argument("--force", action="store_true", help="Replace output if it already exists.")
     parser.add_argument("--audit", action="store_true", help="Inspect a PDF and recommend an optimization strategy without writing output.")
     parser.add_argument("--report", help="Write a Markdown optimization report to this path.")

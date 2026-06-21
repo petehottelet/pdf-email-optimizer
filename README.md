@@ -27,7 +27,7 @@ PDF Email Optimizer is built for posters, brochures, reports, photo-heavy decks,
 
 Eight real documents — two PowerPoint decks starting from `.pptx`, two image-heavy PDFs, two government technical reports, and two archival document scans from 1976 — run end-to-end through the optimizer. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
 
-![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=3)
+![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=4)
 
 <table width="100%">
 <thead>
@@ -44,14 +44,14 @@ Eight real documents — two PowerPoint decks starting from `.pptx`, two image-h
 <tr><td>Archival scan, 1976 (B)</td><td align="right">88.68 MB <code>.pdf</code></td><td align="right"><b>23.80 MB</b></td><td align="right"><b>73.2%</b></td><td align="right">32.5 dB</td></tr>
 <tr><td>Lossless image PDF</td><td align="right">69.65 MB <code>.pdf</code></td><td align="right"><b>2.93 MB</b></td><td align="right"><b>95.8%</b></td><td align="right">54.6 dB</td></tr>
 <tr><td>Financial services proposal</td><td align="right">36.31 MB <code>.pptx</code></td><td align="right"><b>4.97 MB</b></td><td align="right"><b>86.3%</b></td><td align="right">41.3 dB</td></tr>
-<tr><td>Archival scan, 1976 (A)</td><td align="right">33.04 MB <code>.pdf</code></td><td align="right"><b>20.58 MB</b></td><td align="right"><b>37.7%</b></td><td align="right">∞ (lossless)</td></tr>
+<tr><td>Archival scan, 1976 (A)</td><td align="right">33.04 MB <code>.pdf</code></td><td align="right"><b>6.65 MB</b></td><td align="right"><b>79.9%</b></td><td align="right">1-bit B&amp;W</td></tr>
 <tr><td>Bank report</td><td align="right">30.16 MB <code>.pptx</code></td><td align="right"><b>7.41 MB</b></td><td align="right"><b>75.5%</b></td><td align="right">38.7 dB</td></tr>
 <tr><td>Government report (2017)</td><td align="right">12.69 MB <code>.pdf</code></td><td align="right"><b>6.86 MB</b></td><td align="right"><b>45.9%</b></td><td align="right">46.9 dB</td></tr>
 <tr><td>Research paper (2024)</td><td align="right">9.57 MB <code>.pdf</code></td><td align="right"><b>6.59 MB</b></td><td align="right"><b>31.1%</b></td><td align="right">38.8 dB</td></tr>
 </tbody>
 </table>
 
-Average reduction across all eight: **67.6%**. The headline samples (photo brochure, lossless image PDF, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. The two archival 1976 NASA scans are the honest end of the spectrum: dense raster pages from a film-scan workflow, with little structural fat. The 606-page scan (1976 A) rewrites lossless (PSNR ∞) and still drops from 33 MB to **20.58 MB**; the 192-page scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB (visible compression but legible at email zoom) — both now fit under Gmail's 25 MB attachment limit, where neither did before. The modern government report and research paper both clear 7 MB cleanly.
+Average reduction across all eight: **72.9%**. The headline samples (photo brochure, lossless image PDF, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. The 192-page archival scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB — visible compression but legible at email zoom, and now under Gmail's 25 MB attachment limit. The 606-page typeset NASA report (1976 A) is the file where ordinary recompression hits a floor: even Ghostscript's lossless rewrite only gets to 20 MB. Opting into the **bilevel CCITT G4 (fax)** strategy with `--bilevel 75` re-renders every page as 1-bit black-and-white at 75 DPI, drops it to **6.65 MB**, and keeps the typeset text and line-art crisp. That last one is deliberately opt-in: bilevel destroys color and grayscale information, so it's appropriate for archival typeset scans but never auto-selected. The modern government report and research paper both clear 7 MB with the standard ladder.
 
 > **Sample sources.** The three NASA-prefixed PDFs in this table — Archival scan 1976 (A) (`19760021505.pdf`), Archival scan 1976 (B) (`19760026509.pdf`), and Government report 2017 (`20170009128.pdf`) — are publicly available documents from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/). Full provenance, NTRS accession numbers, and the project's policy on the rendered samples live in [`docs/sample-provenance.md`](docs/sample-provenance.md).
 
@@ -118,6 +118,22 @@ The source PDF is never overwritten. Existing output files are rejected unless `
 | `aggressive` | Smallest file matters more than perfect fidelity | Lower quality floor, smaller long-edge caps, optional Ghostscript fallback |
 
 If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps.
+
+### Archival opt-in: `--bilevel`
+
+For typeset / line-art archival scans where the page is fundamentally black ink on paper (microfilmed reports, scanned books, government archives), the bilevel CCITT Group 4 (fax) strategy compresses to a fraction of what JPEG-based recompression can reach:
+
+```bash
+pip install "pdf-email-optimizer[bilevel]"
+
+# Render every page as 1-bit black & white at 75 DPI, emit a CCITT G4 PDF.
+pdf-email-optimizer scan.pdf scan_email.pdf --bilevel 75
+
+# Tweak the brightness cutoff for darker / lighter scans.
+pdf-email-optimizer scan.pdf scan_email.pdf --bilevel 100 --bilevel-threshold 180
+```
+
+This is destructive — every gray pixel becomes pure black or pure white — so the optimizer never auto-selects it. Use it only when you know the source is black-on-white content. Render QA still runs but the PSNR number is no longer comparable to the grayscale results above; visual review is the right check.
 
 ## Output
 

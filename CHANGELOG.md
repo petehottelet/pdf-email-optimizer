@@ -4,15 +4,50 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.6.0] - 2026-06-21
 
 ### Added
 
+- New `--bilevel [DPI]` strategy: render every page as 1-bit black &
+  white at the given DPI and emit a CCITT Group 4 (fax) PDF. This is the
+  right compression for typeset / line-art archival scans where the page
+  is black ink on paper; it gets the 606-page 33 MB NASA report down to
+  6.65 MB (79.9% reduction) where JPEG-based recompression bottomed out
+  at 20 MB. Companion flag `--bilevel-threshold` (0-255, default 200)
+  tunes the brightness cutoff. Strategy is destructive (color and
+  grayscale are thresholded to 1-bit) and is **never auto-selected** -
+  it's an explicit opt-in via the CLI flag or via the new
+  `SamplePlan.bilevel_dpi` field in `benchmarks/run_samples.py`.
+- New `[bilevel]` optional dependency group pulls in `img2pdf>=0.6`.
+- New module `pdf_email_optimizer.bilevel` and `bilevel-g4` value in the
+  output-summary `strategy` enum. JSON summary gains optional
+  `bilevel_dpi` and `bilevel_threshold` keys when the bilevel path runs.
+- `benchmarks/run_samples.py` `SamplePlan` learned `bilevel_dpi` and
+  `bilevel_threshold`. The 606-page archive scan (`archive_scan_1976a`)
+  is now wired to use it; its real-world result moves from 20.58 MB
+  (37.7% reduction) to **6.65 MB (79.9% reduction)** with PSNR 19 dB -
+  the metric stops being meaningful at 1-bit but visual review confirms
+  text and line-art are crisp.
+- README real-world section now averages **72.9% reduction across all
+  eight samples** (up from 67.6% in 1.5.0) and gained an "Archival
+  opt-in: `--bilevel`" subsection documenting when and how to use the
+  new strategy.
 - Source attribution for the three NASA-prefixed sample PDFs:
-  `19760021505.pdf`, `19760026509.pdf`, and `20170009128.pdf` are obtained
-  from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/).
-  README now links NTRS inline; full per-file provenance with NTRS
-  accession numbers lives in [`docs/sample-provenance.md`](docs/sample-provenance.md).
+  `19760021505.pdf`, `19760026509.pdf`, and `20170009128.pdf` are
+  obtained from the
+  [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/). README
+  now links NTRS inline; full per-file provenance with NTRS accession
+  numbers lives in
+  [`docs/sample-provenance.md`](docs/sample-provenance.md).
+
+### Changed
+
+- `compare_render_quality` tolerates sub-point page-size rounding
+  (within four pixels in each dimension) by resizing the candidate
+  render to the original's dimensions before diff, instead of declaring
+  the pages incomparable. This is what enables render QA to produce
+  meaningful PSNR numbers for `img2pdf`-derived bilevel outputs whose
+  page sizes shift by 1-2 pts due to integer-pixel rounding.
 
 ## [1.5.0] - 2026-06-21
 

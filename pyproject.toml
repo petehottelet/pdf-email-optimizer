@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pdf-email-optimizer"
-version = "1.5.0"
+version = "1.6.0"
 description = "Shrink PDFs to email-safe sizes while preserving visual quality — CLI plus Claude and Codex agent skill."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -53,6 +53,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "build",
+  "img2pdf>=0.6",
   "jsonschema",
   "mypy",
   "pikepdf>=8",
@@ -66,6 +67,7 @@ qa = ["pypdfium2>=4.0"]
 ghostscript = []
 pikepdf = ["pikepdf>=8"]
 fixtures = ["reportlab>=4.0"]
+bilevel = ["img2pdf>=0.6"]
 
 [project.urls]
 Homepage = "https://github.com/petehottelet/pdf-email-optimizer"

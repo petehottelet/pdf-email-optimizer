@@ -41,7 +41,7 @@
     "met_target": { "type": "boolean" },
     "within_target_range": { "type": "boolean" },
     "strategy": {
-      "enum": ["structural-cleanup", "pikepdf-structural", "image-recompress", "ghostscript-fallback", "unknown"]
+      "enum": ["structural-cleanup", "pikepdf-structural", "image-recompress", "ghostscript-fallback", "bilevel-g4", "unknown"]
     },
     "pages": { "type": ["integer", "null"], "minimum": 0 },
     "private_removed": {
