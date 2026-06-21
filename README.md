@@ -25,29 +25,33 @@ PDF Email Optimizer is built for posters, brochures, reports, photo-heavy decks,
 
 ## Real-world results
 
-Four real documents — two PowerPoint files starting from `.pptx`, two image-heavy PDFs — run end-to-end through the office-doc-to-email-PDF pipeline. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
+Eight real documents — two PowerPoint decks starting from `.pptx`, two image-heavy PDFs, two government technical reports, and two archival document scans from 1976 — run end-to-end through the optimizer. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
 
-![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=2)
+![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=3)
 
 <table width="100%">
 <thead>
 <tr>
-<th width="36%" align="left">Sample</th>
+<th width="34%" align="left">Sample</th>
 <th width="20%" align="right">Original</th>
 <th width="16%" align="right">Email PDF</th>
 <th width="14%" align="right">Reduction</th>
-<th width="14%" align="right">PSNR</th>
+<th width="16%" align="right">PSNR</th>
 </tr>
 </thead>
 <tbody>
 <tr><td>Photo brochure</td><td align="right">138.74 MB <code>.pdf</code></td><td align="right"><b>6.51 MB</b></td><td align="right"><b>95.3%</b></td><td align="right">48.6 dB</td></tr>
+<tr><td>Archival scan, 1976 (B)</td><td align="right">88.68 MB <code>.pdf</code></td><td align="right"><b>23.80 MB</b></td><td align="right"><b>73.2%</b></td><td align="right">32.5 dB</td></tr>
 <tr><td>Lossless image PDF</td><td align="right">69.65 MB <code>.pdf</code></td><td align="right"><b>2.93 MB</b></td><td align="right"><b>95.8%</b></td><td align="right">54.6 dB</td></tr>
 <tr><td>Financial services proposal</td><td align="right">36.31 MB <code>.pptx</code></td><td align="right"><b>4.97 MB</b></td><td align="right"><b>86.3%</b></td><td align="right">41.3 dB</td></tr>
+<tr><td>Archival scan, 1976 (A)</td><td align="right">33.04 MB <code>.pdf</code></td><td align="right"><b>20.58 MB</b></td><td align="right"><b>37.7%</b></td><td align="right">∞ (lossless)</td></tr>
 <tr><td>Bank report</td><td align="right">30.16 MB <code>.pptx</code></td><td align="right"><b>7.41 MB</b></td><td align="right"><b>75.5%</b></td><td align="right">38.7 dB</td></tr>
+<tr><td>Government report (2017)</td><td align="right">12.69 MB <code>.pdf</code></td><td align="right"><b>6.86 MB</b></td><td align="right"><b>45.9%</b></td><td align="right">46.9 dB</td></tr>
+<tr><td>Research paper (2024)</td><td align="right">9.57 MB <code>.pdf</code></td><td align="right"><b>6.59 MB</b></td><td align="right"><b>31.1%</b></td><td align="right">38.8 dB</td></tr>
 </tbody>
 </table>
 
-Average reduction across these four real documents: **88.2%**. PSNR ≥ 40 dB is the threshold commonly called "visually indistinguishable"; three of the four samples clear it and the fourth (the bank report) sits at 38.7 dB — close enough that side-by-side renders show no perceptible difference at email zoom. The bank report is a PowerPoint export with ~9,400 embedded glyph rasters; the Python image-recompress ladder OOMs on a file like that, so the optimizer shells out to Ghostscript's page-stream compressor and still gets the original 30.16 MB `.pptx` down to **7.41 MB**.
+Average reduction across all eight: **67.6%**. The headline samples (photo brochure, lossless image PDF, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. The two archival 1976 NASA scans are the honest end of the spectrum: dense raster pages from a film-scan workflow, with little structural fat. The 606-page scan (1976 A) rewrites lossless (PSNR ∞) and still drops from 33 MB to **20.58 MB**; the 192-page scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB (visible compression but legible at email zoom) — both now fit under Gmail's 25 MB attachment limit, where neither did before. The modern government report and research paper both clear 7 MB cleanly.
 
 For PowerPoint and Excel starting points, the conversion is one command:
 
@@ -129,19 +133,19 @@ Before / after pairs from the real-world sample suite. Numbers match the [Real-w
 
 **Photo brochure — 138.74 MB `.pdf` → 6.51 MB email PDF (95.3% smaller, PSNR 48.6 dB)**
 
-![Photo brochure before and after](docs/gallery/travel_contact_sheet.png?v=2)
+![Photo brochure before and after](docs/gallery/travel_contact_sheet.png?v=3)
 
 **Lossless image PDF — 69.65 MB `.pdf` → 2.93 MB email PDF (95.8% smaller, PSNR 54.6 dB)**
 
-![Lossless image PDF before and after](docs/gallery/lossless_huge.png?v=2)
+![Lossless image PDF before and after](docs/gallery/lossless_huge.png?v=3)
 
 **Financial services proposal — 36.31 MB `.pptx` → 4.97 MB email PDF (86.3% smaller, PSNR 41.3 dB)**
 
-![Financial services proposal before and after](docs/gallery/financial_proposal.png?v=2)
+![Financial services proposal before and after](docs/gallery/financial_proposal.png?v=3)
 
 **Bank report — 30.16 MB `.pptx` → 7.41 MB email PDF (75.5% smaller, PSNR 38.7 dB)**
 
-![Bank report before and after](docs/gallery/bank_report.png?v=2)
+![Bank report before and after](docs/gallery/bank_report.png?v=3)
 
 PSNR ≥ 40 dB is visually indistinguishable; the optimizer holds every passing sample at or above that. Per-sample `_before.png`, `_after.png`, and `_diff.png` files live under [`docs/gallery/`](docs/gallery/). The amplified diff is at 8x so even sub-pixel differences are visible — if it looks black, the change is invisible at normal zoom.
 

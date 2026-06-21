@@ -44,12 +44,17 @@ FG = "#e6edf3"
 FG_MUTED = "#8b949e"
 GRID = "#30363d"
 
-# Canonical README ordering: descending by original size for visual impact.
+# Canonical README ordering: descending by headline original size for visual
+# impact. Mirrors SAMPLE_ORDER_FOR_README in benchmarks/run_samples.py.
 DEFAULT_ORDER = (
     "travel_contact_sheet",
+    "archive_scan_1976b",
     "lossless_huge",
     "financial_proposal",
+    "archive_scan_1976a",
     "bank_report",
+    "gov_2017",
+    "research_paper_2024",
 )
 
 SHORT_LABELS = {
@@ -57,6 +62,10 @@ SHORT_LABELS = {
     "lossless_huge": "Lossless image PDF",
     "financial_proposal": "Financial proposal",
     "bank_report": "Bank report",
+    "gov_2017": "Govt. report 2017",
+    "research_paper_2024": "Research paper 2024",
+    "archive_scan_1976a": "Archive scan 1976-A",
+    "archive_scan_1976b": "Archive scan 1976-B",
 }
 
 
@@ -124,12 +133,19 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
     outputs = [float(sample["output_mb"]) for sample in ok]
     reductions = [_headline_reduction(sample) for sample in ok]
 
-    fig, ax = plt.subplots(figsize=(12, 6.5), dpi=160)
+    # Adaptive sizing: keep ~1.6 inches of horizontal space per bar pair so
+    # the chart stays legible at four samples and still works at eight or more.
+    n = len(labels)
+    fig_width = max(12.0, 2.0 + 1.6 * n)
+    fig, ax = plt.subplots(figsize=(fig_width, 6.8), dpi=160)
     _apply_dark_theme(fig, ax)
 
-    x = np.arange(len(labels))
+    x = np.arange(n)
     width = 0.4
     gap = 0.04
+    tick_fontsize = 11 if n <= 5 else 10
+    bar_fontsize = 11 if n <= 5 else 10
+    pct_fontsize = 12 if n <= 5 else 11
     bars_in = ax.bar(
         x - (width / 2 + gap / 2),
         originals,
@@ -152,7 +168,7 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
     )
 
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, color=FG, fontsize=11)
+    ax.set_xticklabels(labels, color=FG, fontsize=tick_fontsize)
     ax.set_ylabel("Size (MB)", color=FG, fontsize=11)
     ax.set_title(
         "Real-world filesize reduction: original document vs email-safe PDF",
@@ -174,7 +190,7 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
             ha="center",
             va="bottom",
             color=PALETTE["blue"],
-            fontsize=11,
+            fontsize=bar_fontsize,
             fontweight="bold",
         )
     for bar, value, reduction in zip(bars_out, outputs, reductions):
@@ -185,7 +201,7 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
             ha="center",
             va="bottom",
             color=PALETTE["green"],
-            fontsize=11,
+            fontsize=bar_fontsize,
             fontweight="bold",
         )
         # The headline win line just below: -95.3% (etc.). Offset further
@@ -198,7 +214,7 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
             ha="center",
             va="bottom",
             color=PALETTE["green"],
-            fontsize=12,
+            fontsize=pct_fontsize,
             fontweight="bold",
         )
 
@@ -217,8 +233,8 @@ def chart_before_after(samples: list[dict[str, Any]], output_path: Path) -> None
     avg = sum(reductions) / len(reductions) if reductions else 0.0
     ax.text(
         0.5,
-        -0.16,
-        f"Average reduction across these four real documents: {avg:.1f}%   \u2022   PSNR\u202F\u2265\u202F40\u202FdB \"visually indistinguishable\" except where noted",
+        -0.18,
+        f"Average reduction across these {n} real documents: {avg:.1f}%   \u2022   PSNR\u202F\u2265\u202F40\u202FdB \"visually indistinguishable\" except where noted",
         transform=ax.transAxes,
         ha="center",
         va="top",

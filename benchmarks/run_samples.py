@@ -124,13 +124,57 @@ SAMPLE_PLANS: list[SamplePlan] = [
         profile="balanced",
         description="139 MB photo contact sheet with dozens of full-bleed photographs.",
     ),
+    SamplePlan(
+        sample_id="gov_2017",
+        label="Government report (2017)",
+        category="government_document",
+        source_name="20170009128.pdf",
+        target_mb=7.0,
+        profile="balanced",
+        description="13 MB modern government technical report (mixed text, charts, embedded raster figures).",
+    ),
+    SamplePlan(
+        sample_id="research_paper_2024",
+        label="Research paper (2024)",
+        category="academic_paper",
+        source_name="TUM_2024.pdf",
+        target_mb=7.0,
+        profile="balanced",
+        description="10 MB modern academic research paper with embedded figures.",
+    ),
+    SamplePlan(
+        sample_id="archive_scan_1976a",
+        label="Archival scan (1976, A)",
+        category="archival_scan",
+        source_name="19760021505.pdf",
+        target_mb=21.0,
+        profile="balanced",
+        description="33 MB, 606-page archival scan. The Python ladder cannot decode embedded JBIG2 images (needs jbig2dec), so we fall back to Ghostscript pdfwrite at 96 DPI / JPEG q=78. Result is pixel-identical (PSNR infinity) because the page-stream rewrite drops structural fat without re-rasterizing.",
+        ghostscript_image_dpi=96,
+        ghostscript_jpeg_quality=78,
+    ),
+    SamplePlan(
+        sample_id="archive_scan_1976b",
+        label="Archival scan (1976, B)",
+        category="archival_scan",
+        source_name="19760026509.pdf",
+        target_mb=24.0,
+        profile="balanced",
+        description="89 MB, 192-page archival scan dense with high-DPI raster pages. Compressed with Ghostscript pdfwrite at 120 DPI / JPEG q=82 - PSNR 32.5 dB (an honest archival-quality result), still cuts the file from 89 MB to ~24 MB so it now fits under Gmail's 25 MB attachment limit.",
+        ghostscript_image_dpi=120,
+        ghostscript_jpeg_quality=82,
+    ),
 ]
 
 SAMPLE_ORDER_FOR_README = (
     "travel_contact_sheet",
+    "archive_scan_1976b",
     "lossless_huge",
     "financial_proposal",
+    "archive_scan_1976a",
     "bank_report",
+    "gov_2017",
+    "research_paper_2024",
 )
 
 # Office-source documents live alongside the PPTX/XLSX originals; the script

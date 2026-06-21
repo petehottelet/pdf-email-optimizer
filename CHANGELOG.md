@@ -8,12 +8,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- Ghostscript-backed strategy for PowerPoint exports with pathological raster
-  counts. `benchmarks/run_samples.py` learned `ghostscript_image_dpi` and
-  `ghostscript_jpeg_quality` fields on `SamplePlan`; when set, the optimizer
-  shells out to Ghostscript's `pdfwrite` page-stream compressor (144 DPI / JPEG
-  q=85 for the bank-report case) so files the Python image-recompress ladder
-  would OOM on still produce honest email-safe outputs.
+- Ghostscript-backed strategy for PowerPoint exports and archival scans the
+  Python image-recompress ladder cannot safely process (PowerPoint glyph
+  rasters, JBIG2-encoded archival pages). `benchmarks/run_samples.py` learned
+  `ghostscript_image_dpi` and `ghostscript_jpeg_quality` fields on
+  `SamplePlan`; when set, the optimizer shells out to Ghostscript's
+  `pdfwrite` page-stream compressor so files that would OOM or fail
+  decode still produce honest email-safe outputs.
+- Real-world sample set extended from four to eight to cover document
+  categories users actually email:
+    - **Government report (2017)**: 12.69 MB `.pdf` → **6.86 MB** (45.9%,
+      PSNR 46.9 dB)
+    - **Research paper (2024)**: 9.57 MB `.pdf` → **6.59 MB** (31.1%,
+      PSNR 38.8 dB)
+    - **Archival scan, 1976 (A)**: 33.04 MB / 606 pages → **20.58 MB**
+      (37.7%, pixel-identical lossless rewrite). The Python ladder cannot
+      decode this file's embedded JBIG2 images without `jbig2dec`; the
+      Ghostscript fallback handles them natively.
+    - **Archival scan, 1976 (B)**: 88.68 MB / 192 pages → **23.80 MB**
+      (73.2%, PSNR 32.5 dB - visible compression but legible at email
+      zoom). Both archival scans now fit under Gmail's 25 MB attachment
+      limit where neither did before.
 - `.github/workflows/publish.yaml` for tag-triggered PyPI publication via
   Trusted Publisher OIDC (no API token required).
 
@@ -23,8 +38,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `.pdf` → 6.51 MB / 95.3% / PSNR 48.6 dB), Lossless image PDF (69.65 MB
   `.pdf` → 2.93 MB / 95.8% / PSNR 54.6 dB), Financial services proposal
   (36.31 MB `.pptx` → 4.97 MB / 86.3% / PSNR 41.3 dB), Bank report (30.16 MB
-  `.pptx` → 7.41 MB / 75.5% / PSNR 38.7 dB). Average reduction across the
-  four real documents is 88.2%.
+  `.pptx` → 7.41 MB / 75.5% / PSNR 38.7 dB) plus the four new samples
+  above. Average reduction across all eight real documents is 67.6%.
+- `benchmarks/make_charts.py` adapts figure width to the sample count
+  (`fig_width = max(12, 2 + 1.6 * n)`) and downsizes label fonts past five
+  samples so the chart stays legible.
 - README real-world results and benchmarks tables rendered as HTML with
   explicit `<th width="...">` so they stretch to full README width on GitHub
   (GitHub strips `<col style>` so a `<colgroup>` alone falls back to
@@ -36,6 +54,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   pointer at `benchmarks/results/latest.md`; the wall of mostly-0.1%
   reductions on sub-MB fixtures was burying the headline real-world
   numbers without adding signal.
+- GitHub repository rebuilt from a single fresh-history initial commit so
+  the Contributors list cleanly shows one author (`petehottelet`); content
+  is bit-identical to the prior history at the point of recreation.
 
 ### Removed
 
