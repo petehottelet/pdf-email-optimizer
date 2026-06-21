@@ -3,7 +3,8 @@
 
 For a single source PDF, this script runs:
 
-- ``pdf-email-optimizer`` at quality, balanced, and aggressive profiles
+- ``pdf-email-optimizer`` at quality, balanced, aggressive, and squeeze profiles
+- ``pdf-email-optimizer --bilevel 100`` (opt-in destructive strategy)
 - raw Ghostscript at the ``/screen``, ``/ebook``, and ``/printer`` PDFSETTINGS
 - a pikepdf-only lossless rewrite
 
@@ -233,6 +234,13 @@ def main() -> int:
     for profile in ("quality", "balanced", "aggressive"):
         print(f"-> optimizer ({profile}) ...", flush=True)
         rows.append(run_optimizer(source, args.target_mb, profile, output_dir))
+
+    # --squeeze is the "force a filesize, keep RGB" profile. Run it at a
+    # tighter target than the rest of the row (--target-mb 1) so the
+    # comparison demonstrates what the profile is *for* rather than just
+    # producing the same first-candidate result as --aggressive.
+    print("-> optimizer (squeeze --target-mb 1) ...", flush=True)
+    rows.append(run_optimizer(source, 1.0, "squeeze", output_dir))
 
     print("-> bilevel (--bilevel 100) ...", flush=True)
     rows.append(run_bilevel(source, output_dir, dpi=100))

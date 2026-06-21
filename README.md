@@ -100,6 +100,9 @@ pdf-email-optimizer input.pdf output_email.pdf --target 7mb --quality
 # Land inside a 5-7 MB range when possible
 pdf-email-optimizer input.pdf output_email.pdf --range 5-7mb --quality
 
+# Force a much smaller file (keeps RGB, accepts visible quality loss)
+pdf-email-optimizer input.pdf output_email.pdf --target-mb 1 --squeeze
+
 # Produce a Markdown report beside the output
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --report report.md
 
@@ -116,8 +119,9 @@ The source PDF is never overwritten. Existing output files are rejected unless `
 | `quality` | Photos, screenshots, maps, product images, "do not degrade" requests | High JPEG floor, protects small images, runs render QA, does not use Ghostscript by default |
 | `balanced` | General email delivery | Moderate recompression ladder and conservative structural cleanup |
 | `aggressive` | Smallest file matters more than perfect fidelity | Lower quality floor, smaller long-edge caps, optional Ghostscript fallback |
+| `squeeze` | "Force this under N MB" while keeping RGB visuals (no bilevel) | Deeper recompression ladder (JPEG down to q=30, long-edge down to 800 px); visible quality loss but the page still renders as a normal color photo / document |
 
-If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps.
+If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps. `squeeze` and `aggressive` will keep grinding the ladder until the requested target is met.
 
 ### Archival opt-in: `--bilevel`
 
@@ -203,13 +207,14 @@ The same PDF, run through each tool, gives very different shapes of output:
 | pdf-email-optimizer (`--quality`) | 3.48 MB | 95.0% | 55.8 dB | Visually lossless, hits target |
 | pdf-email-optimizer (`--balanced`) | 2.93 MB | 95.8% | 54.6 dB | Visually lossless, hits target |
 | pdf-email-optimizer (`--aggressive`) | 2.71 MB | 96.1% | 54.0 dB | Visually lossless, hits target |
+| pdf-email-optimizer (`--squeeze --target-mb 1`) | 0.81 MB | 98.8% | 44.6 dB | Lossy; prioritizes filesize over fidelity. Stays RGB. |
 | pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | Lossy; prioritizes filesize over fidelity. For typeset / line-art scans. |
 | Ghostscript `/printer` | 1.29 MB | 98.2% | 34.5 dB | Visible degradation, no quality floor |
 | Ghostscript `/ebook` | 0.29 MB | 99.6% | 31.6 dB | Severely degraded |
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | Severely degraded |
 | pikepdf-only (lossless) | 53.90 MB | 22.6% | ∞ | Pixel-identical, but doesn't hit target |
 
-Source: 69.65 MB photo PDF with lossless-encoded image streams, target 7 MB. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
+Source: 69.65 MB photo PDF with lossless-encoded image streams. The four optimizer profiles share a 7 MB target except for `--squeeze`, which is shown at `--target-mb 1` so the row demonstrates what the profile is *for*. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
 
 ## Visual QA
 

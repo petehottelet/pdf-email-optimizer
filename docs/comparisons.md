@@ -1,6 +1,6 @@
 # How it compares
 
-`pdf-email-optimizer` is one of several tools you can point at an oversized PDF. This page is the honest side-by-side: same input, same target, three profiles of the optimizer, the opt-in `--bilevel` strategy (included to show what happens when it's applied to the wrong content), three Ghostscript presets, and a pikepdf-only lossless rewrite. All numbers are produced by [`benchmarks/run_comparisons.py`](../benchmarks/run_comparisons.py); the exact commands are listed below so anyone can reproduce them.
+`pdf-email-optimizer` is one of several tools you can point at an oversized PDF. This page is the honest side-by-side: same input, four profiles of the optimizer (`--quality` / `--balanced` / `--aggressive` at the shared 7 MB target, plus `--squeeze` at a tighter 1 MB target to show the "force this small" path), the opt-in `--bilevel` strategy (included to show what happens when it's applied to the wrong content), three Ghostscript presets, and a pikepdf-only lossless rewrite. All numbers are produced by [`benchmarks/run_comparisons.py`](../benchmarks/run_comparisons.py); the exact commands are listed below so anyone can reproduce them.
 
 Methodology:
 
@@ -20,6 +20,7 @@ Results from [`benchmarks/results/comparisons.json`](../benchmarks/results/compa
 | pdf-email-optimizer (`--quality`) | 3.48 MB | 95.0% | 55.8 dB | 0.42 | Visually lossless, hits target |
 | pdf-email-optimizer (`--balanced`) | 2.93 MB | 95.8% | 54.6 dB | 0.47 | Visually lossless, hits target |
 | pdf-email-optimizer (`--aggressive`) | 2.71 MB | 96.1% | 54.0 dB | 0.51 | Visually lossless, hits target |
+| pdf-email-optimizer (`--squeeze --target-mb 1`) | 0.81 MB | 98.8% | 44.6 dB | 1.55 | Lossy; prioritizes filesize over fidelity. Stays RGB. |
 | pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | 71.6 | Lossy; prioritizes filesize over fidelity. For typeset / line-art scans. |
 | Ghostscript `/printer` | 1.29 MB | 98.2% | 34.5 dB | 4.82 | Visible degradation, no quality floor |
 | Ghostscript `/ebook` | 0.29 MB | 99.6% | 31.6 dB | 6.69 | Severely degraded |
@@ -39,12 +40,13 @@ python benchmarks/run_comparisons.py \
 
 `pdf-email-optimizer` and Ghostscript are not the same shape of tool.
 
-- All three optimizer profiles **hit the email target** while staying above PSNR 54 dB - visually lossless rendering at scale. The widely-cited "visually indistinguishable" threshold is about 38-40 dB.
+- All three "visually lossless" optimizer profiles **hit the email target** while staying above PSNR 54 dB - visually lossless rendering at scale. The widely-cited "visually indistinguishable" threshold is about 38-40 dB.
+- `--squeeze` is the "force a filesize" profile. At `--target-mb 1` it lands at **0.81 MB / PSNR 44.6 dB** — visibly more compressed than the lossless profiles but still RGB, still recognisably the same page. Compare it to the Ghostscript rows just below: Ghostscript `/printer` is 1.29 MB at PSNR 34.5 dB (bigger file, worse fidelity); Ghostscript `/ebook` is 0.29 MB at PSNR 31.6 dB (smaller but a measurable step down in quality). `--squeeze` honours the target you set and gives back PSNR proportional to it.
 - Every Ghostscript preset goes **smaller than asked**, but trades real visual fidelity. `/screen` ends up at PSNR 27 dB, which is well into "people will notice."
-- `--bilevel 100` produces a **21 KB** file — the smallest output in the table — at PSNR 11 dB. The photo content has been quantized to 1-bit black/white squares; the file is technically valid but the photos are gone. This row is included to make the failure mode explicit: bilevel is the right answer for typeset / line-art archival scans (it took the 88.68 MB 1976 NASA scan in [Real-world results](../README.md#real-world-results) down to 5.27 MB while keeping text legible) and the wrong answer for everything else.
+- `--bilevel 100` produces a **21 KB** file — the smallest output in the table — at PSNR 11 dB. The photo content has been quantized to 1-bit black/white squares; the file is technically valid but the photos are gone. Bilevel is the right answer for typeset / line-art archival scans (it took the 88.68 MB 1976 NASA scan in [Real-world results](../README.md#real-world-results) down to 5.27 MB while keeping text legible) and the wrong answer for everything else.
 - The pikepdf-only run is the strictly safe ceiling (no pixel changes) but doesn't hit any kind of email target on a PDF this big.
 
-In other words: if you want the smallest possible file that still looks like the original on screen and inside email clients, the optimizer's `--quality` / `--balanced` / `--aggressive` profiles win. If your source is a typeset / line-art scan, the opt-in `--bilevel` strategy outperforms every other tool here. If you want raw smallness regardless of quality on photo content, Ghostscript `/screen` is the right comparison.
+In other words: if you want the smallest possible file that still looks visually identical to the original, the optimizer's `--quality` / `--balanced` / `--aggressive` profiles win. If you need to force a much tighter size on photo content and accept visible compression, `--squeeze` is the option to reach for — it beats the equivalent Ghostscript preset at the same approximate output size. If your source is a typeset / line-art scan, the opt-in `--bilevel` strategy outperforms every other tool here.
 
 ## Exact Ghostscript commands
 

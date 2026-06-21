@@ -6,8 +6,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- New `squeeze` profile (`--squeeze` / `--profile squeeze`): the
+  intermediate strategy between the visually-lossless ladder
+  (`--quality` / `--balanced` / `--aggressive`) and the destructive
+  `--bilevel` opt-in. It extends the JPEG quality ladder down to q=30
+  and the long-edge cap down to 800 px, with no PSNR floor, so the
+  optimizer can honour very tight `--target-mb` budgets while keeping
+  the output as a normal RGB photo / color document. On the 69.65 MB
+  photo PDF at `--target-mb 1` it lands at **0.81 MB / PSNR 44.6 dB**
+  — bigger and higher-fidelity than Ghostscript `/ebook` at the same
+  approximate budget, and noticeably smaller than `--aggressive`.
+
 ### Changed
 
+- "How it compares" tables in `README.md` and `docs/comparisons.md` now
+  include the `--squeeze` row alongside `--bilevel`, so the full
+  spectrum (visually-lossless → lossy-but-RGB → lossy bilevel) is
+  visible in one place. The bilevel and squeeze rows are tagged
+  "Lossy; prioritizes filesize over fidelity" in the Notes column.
 - Renamed the `lossless_huge` real-world sample from "Lossless image PDF"
   to "Photo PDF (lossless source)" in the README table, chart label,
   gallery caption, and corpus documentation. The previous name was
