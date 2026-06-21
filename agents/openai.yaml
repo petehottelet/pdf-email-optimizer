@@ -1,0 +1,7 @@
+interface:
+  display_name: "PDF Email Optimizer"
+  short_description: "Shrink PDFs to email-safe sizes while preserving visual quality"
+  icon_small: "./assets/icon.png"
+  icon_large: "./assets/logo.png"
+  brand_color: "#B0141B"
+  default_prompt: "Use $pdf-email-optimizer to reduce this PDF to an email-safe file size while preserving visual quality."

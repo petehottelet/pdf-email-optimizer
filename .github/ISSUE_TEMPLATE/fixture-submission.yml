@@ -1,0 +1,94 @@
+name: Fixture / benchmark submission
+description: Submit a PDF fixture or share a benchmark result.
+title: "Fixture: "
+labels: ["fixture", "benchmark"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping validate `pdf-email-optimizer` against real-world PDFs. Please **do not** attach sensitive, copyrighted, or personally identifying content to this public issue. If the PDF cannot be shared safely, describe it instead and share only the numbers and visual notes.
+
+  - type: checkboxes
+    id: permission
+    attributes:
+      label: Permission and privacy
+      options:
+        - label: I have the right to share this PDF or these benchmark results.
+          required: true
+        - label: The PDF does not contain private, sensitive, confidential, or personally identifying information.
+          required: true
+        - label: I understand the result may be added to the project's benchmark corpus or validation docs.
+          required: true
+
+  - type: dropdown
+    id: pdf_type
+    attributes:
+      label: PDF category
+      options:
+        - Photo-heavy brochure
+        - Screenshot-heavy report or deck
+        - Design-tool export (Canva, Illustrator, InDesign, Figma, Affinity, etc.)
+        - Scanned document
+        - Form / AcroForm PDF
+        - Annotated PDF
+        - Transparency / blend mode heavy
+        - Already-optimized PDF
+        - Encrypted PDF (unlocked first)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source / origin
+      description: "Where the PDF came from (e.g. Canva export, scanner, Acrobat save, application X)."
+    validations:
+      required: true
+
+  - type: input
+    id: original_size
+    attributes:
+      label: Original size (MB)
+    validations:
+      required: true
+
+  - type: input
+    id: optimized_size
+    attributes:
+      label: Optimized size (MB)
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command used
+      description: "Copy/paste the exact command, e.g. `pdf-email-optimizer in.pdf out.pdf --target-mb 7 --balanced`."
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: visual_result
+    attributes:
+      label: Visual result
+      options:
+        - Looked correct
+        - Minor differences, acceptable
+        - Visible degradation
+        - Broken (text/forms/annotations damaged)
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: "Anything else worth recording: pages, render QA numbers, target size, edge cases, etc."
+
+  - type: textarea
+    id: attachment_policy
+    attributes:
+      label: "Optional: attaching the PDF"
+      description: "Only attach the PDF if it is safe to share publicly. Otherwise, describe it. Maintainers can request a redacted or synthetic fixture if needed."

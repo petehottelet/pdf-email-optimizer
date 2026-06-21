@@ -1,0 +1,10 @@
+# Runtime dependencies for PDF Email Optimizer.
+pypdf>=4.0
+Pillow>=10.0
+pypdfium2>=4.0
+
+# For development, prefer:
+#   python -m pip install -e ".[dev]"
+#
+# Optional external system dependency:
+# Ghostscript provides the last-resort --ghostscript fallback.

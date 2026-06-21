@@ -1,0 +1,101 @@
+{
+  "source": "C:\\Users\\PeteHottelet\\Projects\\skills\\pdf-email-optimizer\\00_project_files\\Converted PDFs\\sample_lossless_huge.pdf",
+  "source_name": "sample_lossless_huge.pdf",
+  "target_mb": 7.0,
+  "results": [
+    {
+      "tool": "pdf-email-optimizer (quality)",
+      "command": "pdf-email-optimizer \"sample_lossless_huge.pdf\" output.pdf --target-mb 7 --quality",
+      "runtime_seconds": 5.191,
+      "strategy": "image-recompress",
+      "met_target": true,
+      "input_bytes": 73036406,
+      "output_bytes": 3653675,
+      "input_mb": 69.653,
+      "output_mb": 3.484,
+      "reduction_percent": 95.0,
+      "worst_psnr": 55.76,
+      "worst_rms": 0.415472
+    },
+    {
+      "tool": "pdf-email-optimizer (balanced)",
+      "command": "pdf-email-optimizer \"sample_lossless_huge.pdf\" output.pdf --target-mb 7 --balanced",
+      "runtime_seconds": 5.22,
+      "strategy": "image-recompress",
+      "met_target": true,
+      "input_bytes": 73036406,
+      "output_bytes": 3071143,
+      "input_mb": 69.653,
+      "output_mb": 2.929,
+      "reduction_percent": 95.8,
+      "worst_psnr": 54.619,
+      "worst_rms": 0.473774
+    },
+    {
+      "tool": "pdf-email-optimizer (aggressive)",
+      "command": "pdf-email-optimizer \"sample_lossless_huge.pdf\" output.pdf --target-mb 7 --aggressive",
+      "runtime_seconds": 5.141,
+      "strategy": "image-recompress",
+      "met_target": true,
+      "input_bytes": 73036406,
+      "output_bytes": 2841670,
+      "input_mb": 69.653,
+      "output_mb": 2.71,
+      "reduction_percent": 96.11,
+      "worst_psnr": 54.044,
+      "worst_rms": 0.506209
+    },
+    {
+      "tool": "ghostscript /screen",
+      "command": "gs -sDEVICE=pdfwrite -dPDFSETTINGS=/screen -dCompatibilityLevel=1.6 -dNOPAUSE -dBATCH -dQUIET -dSAFER -sOutputFile=output.pdf input.pdf",
+      "runtime_seconds": 0.576,
+      "status": "ok",
+      "input_bytes": 73036406,
+      "output_bytes": 124862,
+      "input_mb": 69.653,
+      "output_mb": 0.119,
+      "reduction_percent": 99.83,
+      "worst_psnr": 27.166,
+      "worst_rms": 11.175336
+    },
+    {
+      "tool": "ghostscript /ebook",
+      "command": "gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -dCompatibilityLevel=1.6 -dNOPAUSE -dBATCH -dQUIET -dSAFER -sOutputFile=output.pdf input.pdf",
+      "runtime_seconds": 0.826,
+      "status": "ok",
+      "input_bytes": 73036406,
+      "output_bytes": 301809,
+      "input_mb": 69.653,
+      "output_mb": 0.288,
+      "reduction_percent": 99.59,
+      "worst_psnr": 31.62,
+      "worst_rms": 6.691803
+    },
+    {
+      "tool": "ghostscript /printer",
+      "command": "gs -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dCompatibilityLevel=1.6 -dNOPAUSE -dBATCH -dQUIET -dSAFER -sOutputFile=output.pdf input.pdf",
+      "runtime_seconds": 1.863,
+      "status": "ok",
+      "input_bytes": 73036406,
+      "output_bytes": 1352985,
+      "input_mb": 69.653,
+      "output_mb": 1.29,
+      "reduction_percent": 98.15,
+      "worst_psnr": 34.465,
+      "worst_rms": 4.822423
+    },
+    {
+      "tool": "pikepdf-only (lossless)",
+      "command": "pikepdf save with object_stream_mode=generate, recompress_flate=True",
+      "runtime_seconds": 2.0,
+      "status": "ok",
+      "input_bytes": 73036406,
+      "output_bytes": 56517923,
+      "input_mb": 69.653,
+      "output_mb": 53.9,
+      "reduction_percent": 22.62,
+      "worst_psnr": "inf",
+      "worst_rms": 0.0
+    }
+  ]
+}

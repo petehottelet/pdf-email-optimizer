@@ -1,0 +1,102 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf-email-optimizer"
+version = "1.5.0"
+description = "Shrink PDFs to email-safe sizes while preserving visual quality — CLI plus Claude and Codex agent skill."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "PDF Email Optimizer contributors" }]
+keywords = [
+  "pdf",
+  "pdf-compression",
+  "compress-pdf",
+  "reduce-pdf-size",
+  "pdf-optimizer",
+  "email",
+  "email-attachments",
+  "optimization",
+  "claude",
+  "claude-skill",
+  "codex",
+  "agent-skill",
+  "cli",
+  "ghostscript",
+  "pikepdf",
+  "image-compression",
+  "document-processing",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Office/Business",
+]
+dependencies = [
+  "pypdf>=4.0",
+  "Pillow>=10.0",
+  "pypdfium2>=4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build",
+  "jsonschema",
+  "mypy",
+  "pikepdf>=8",
+  "pytest",
+  "pytest-cov",
+  "reportlab>=4.0",
+  "ruff",
+  "twine",
+]
+qa = ["pypdfium2>=4.0"]
+ghostscript = []
+pikepdf = ["pikepdf>=8"]
+fixtures = ["reportlab>=4.0"]
+
+[project.urls]
+Homepage = "https://github.com/petehottelet/pdf-email-optimizer"
+Issues = "https://github.com/petehottelet/pdf-email-optimizer/issues"
+
+[project.scripts]
+pdf-email-optimizer = "pdf_email_optimizer.cli:main"
+pdf-email-render-compare = "pdf_email_optimizer.render_qa:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "benchmarks"]
+testpaths = ["tests"]
+markers = [
+  "integration: end-to-end runs against realistic generated PDF fixtures (deselect with -m 'not integration').",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+branch = true
+source = ["pdf_email_optimizer"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

@@ -1,0 +1,41 @@
+[
+  {
+    "case": "real_estate_listing",
+    "status": "ok",
+    "label": "Real-estate listing",
+    "input_mb": 12.09,
+    "output_mb": 2.01,
+    "reduction_percent": 83.4,
+    "worst_psnr": 44.65,
+    "quality_label": "PSNR 44.7 dB",
+    "strategy": "image-recompress",
+    "pages": 6,
+    "met_target": true
+  },
+  {
+    "case": "travel_lookbook",
+    "status": "ok",
+    "label": "Travel lookbook",
+    "input_mb": 13.92,
+    "output_mb": 2.67,
+    "reduction_percent": 80.8,
+    "worst_psnr": 43.45,
+    "quality_label": "PSNR 43.5 dB",
+    "strategy": "image-recompress",
+    "pages": 6,
+    "met_target": true
+  },
+  {
+    "case": "restaurant_menu",
+    "status": "ok",
+    "label": "Restaurant menu",
+    "input_mb": 9.8,
+    "output_mb": 1.89,
+    "reduction_percent": 80.7,
+    "worst_psnr": 44.68,
+    "quality_label": "PSNR 44.7 dB",
+    "strategy": "image-recompress",
+    "pages": 6,
+    "met_target": true
+  }
+]

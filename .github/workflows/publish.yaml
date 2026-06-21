@@ -1,0 +1,74 @@
+name: Publish to PyPI
+
+# Authenticates to PyPI via Trusted Publisher OIDC, configured at
+# https://pypi.org/manage/project/pdf-email-optimizer/settings/publishing/
+# Pinned to:
+#   Repository:   petehottelet/pdf-email-optimizer
+#   Workflow:     publish.yaml
+#   Environment:  pypi
+# If you rename this file or change the environment, update PyPI to match.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Verify distribution metadata
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine check dist/*
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    # The PyPI Trusted Publisher is pinned to this environment name.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pdf-email-optimizer/
+    permissions:
+      # OIDC token exchange for PyPI Trusted Publisher.
+      id-token: write
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          print-hash: true

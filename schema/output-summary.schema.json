@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/petehottelet/pdf-email-optimizer/schema/output-summary.schema.json",
+  "title": "PDF Email Optimizer Output Summary",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "input",
+    "output",
+    "profile",
+    "input_bytes",
+    "output_bytes",
+    "input_mb",
+    "output_mb",
+    "target_mb",
+    "target_min_mb",
+    "target_label",
+    "preferred_mb",
+    "met_target",
+    "within_target_range",
+    "strategy",
+    "pages",
+    "private_removed",
+    "image_stats",
+    "render_qa",
+    "quality_ok",
+    "warnings"
+  ],
+  "properties": {
+    "input": { "type": "string" },
+    "output": { "type": "string" },
+    "profile": { "enum": ["quality", "balanced", "aggressive"] },
+    "input_bytes": { "type": "integer", "minimum": 0 },
+    "output_bytes": { "type": "integer", "minimum": 0 },
+    "input_mb": { "type": "number", "minimum": 0 },
+    "output_mb": { "type": "number", "minimum": 0 },
+    "target_mb": { "type": "number", "exclusiveMinimum": 0 },
+    "target_min_mb": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "target_label": { "type": "string" },
+    "preferred_mb": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "met_target": { "type": "boolean" },
+    "within_target_range": { "type": "boolean" },
+    "strategy": {
+      "enum": ["structural-cleanup", "pikepdf-structural", "image-recompress", "ghostscript-fallback", "unknown"]
+    },
+    "pages": { "type": ["integer", "null"], "minimum": 0 },
+    "private_removed": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "image_stats": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "render_qa": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "quality_ok": { "type": "boolean" },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

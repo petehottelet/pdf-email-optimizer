@@ -1,0 +1,12 @@
+case_id,status,profile,target_mb,input_mb,output_mb,reduction_percent,met_target,worst_psnr,worst_rms,strategy,pages,runtime_seconds,reason
+photo_brochure,ok,quality,0.6,1.1,1.099,0.07,False,inf,0.0,pikepdf-structural,4,2.378,
+indesign_export,ok,balanced,1.0,2.347,0.181,92.28,True,57.822,0.327679,image-recompress,2,0.916,
+illustrator_export,ok,balanced,7.0,0.009,0.008,18.56,True,inf,0.0,structural-cleanup,1,0.009,
+creator_metadata,ok,quality,7.0,0.159,0.159,0.08,True,inf,0.0,structural-cleanup,1,0.015,
+screenshot_report,ok,quality,0.2,0.274,0.092,66.43,True,inf,0.0,structural-cleanup,3,0.017,
+text_vector_document,ok,balanced,7.0,0.003,0.003,12.16,True,inf,0.0,structural-cleanup,3,0.009,
+scanned_pdf,ok,balanced,0.4,0.735,0.246,66.58,True,inf,0.0,structural-cleanup,3,0.017,
+mixed_transparency,ok,quality,1.0,1.751,1.751,-0.0,False,inf,0.0,structural-cleanup,1,5.452,
+embedded_metadata,ok,balanced,7.0,0.116,0.116,0.08,True,inf,0.0,structural-cleanup,1,0.015,
+repeated_images,ok,balanced,0.5,0.809,0.136,83.16,True,inf,0.0,structural-cleanup,6,0.02,
+forms_annotations,ok,quality,7.0,0.007,0.006,3.92,True,inf,0.0,structural-cleanup,1,0.013,

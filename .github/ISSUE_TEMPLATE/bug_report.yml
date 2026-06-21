@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible problem without sharing sensitive PDFs publicly.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Paste the command and output. Redact private paths if needed.
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: pdf_type
+    attributes:
+      label: PDF characteristics
+      options:
+        - Photo-heavy
+        - Screenshot-heavy
+        - Text/vector-heavy
+        - Scanned
+        - Forms or annotations
+        - Encrypted
+        - Transparency-heavy
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Fixture privacy
+      description: Do not upload confidential PDFs. Describe whether you can provide a synthetic or redacted fixture.
