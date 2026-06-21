@@ -21,6 +21,7 @@ from pypdf.errors import PdfReadError
 from pypdf.generic import NameObject
 
 from . import bilevel as bilevel_strategy
+from . import office_convert
 from .pikepdf_backend import structural_optimize as pikepdf_structural_optimize
 
 logging.getLogger("pypdf").setLevel(logging.ERROR)
@@ -156,6 +157,58 @@ def output_path_for(input_path: Path, output_arg: str | None) -> Path:
     if output_arg:
         return Path(output_arg).expanduser().resolve()
     return input_path.with_name(f"{input_path.stem}_email.pdf").resolve()
+
+
+def resolve_input_source(
+    raw_path: str,
+) -> tuple[Path, Path, dict[str, Any] | None, Path | None]:
+    """Return ``(source_path, working_pdf, source_metadata, temp_dir)``.
+
+    ``source_path`` is the original file the user passed in (PDF or Office
+    document). ``working_pdf`` is the PDF the optimizer should actually
+    process: identical to ``source_path`` for PDF inputs, or a freshly
+    converted temp PDF for Office inputs.
+
+    When an Office document is converted, ``source_metadata`` carries the
+    original size / format / intermediate PDF size so the optimizer can
+    report a meaningful end-to-end reduction (e.g. ``.pptx -> .pdf``).
+    ``temp_dir`` is the temporary directory that holds the intermediate PDF;
+    the caller is responsible for removing it in a ``finally`` block.
+    """
+
+    source_path = Path(raw_path).expanduser().resolve()
+    if not source_path.exists():
+        raise FileNotFoundError(f"Input file not found: {source_path}")
+
+    if source_path.suffix.lower() == ".pdf":
+        return source_path, source_path, None, None
+
+    if not office_convert.is_office_document(source_path):
+        raise ValueError(
+            f"Unsupported input format '{source_path.suffix}'. Supported inputs: "
+            ".pdf plus Office formats ("
+            + ", ".join(sorted(office_convert.OFFICE_SUFFIXES))
+            + ")."
+        )
+
+    source_bytes = file_size(source_path)
+    try:
+        working_pdf = office_convert.convert_to_pdf(source_path)
+    except office_convert.OfficeConversionError as exc:
+        raise RuntimeError(str(exc)) from exc
+
+    temp_dir = working_pdf.parent
+    intermediate_bytes = file_size(working_pdf)
+    metadata = {
+        "source_path": str(source_path),
+        "source_bytes": source_bytes,
+        "source_mb": round(bytes_to_mb(source_bytes), 3),
+        "source_format": source_path.suffix.lower(),
+        "intermediate_pdf_bytes": intermediate_bytes,
+        "intermediate_pdf_mb": round(bytes_to_mb(intermediate_bytes), 3),
+        "converted_via": "libreoffice",
+    }
+    return source_path, working_pdf, metadata, temp_dir
 
 
 def parse_mb_range(value: str) -> tuple[float, float]:
@@ -794,25 +847,32 @@ def inspect_pdf_features(input_path: Path) -> dict[str, Any]:
     return features
 
 
-def audit_pdf(input_path: Path) -> dict[str, Any]:
-    audit = inspect_pdf_features(input_path)
-    if audit["encrypted"]:
-        audit["recommended_profile"] = None
-        audit["structural_cleanup_likely"] = False
-        audit["image_recompression_likely_required"] = False
-        return audit
+def audit_pdf(input_path: Path | str) -> dict[str, Any]:
+    source_path, working_pdf, source_metadata, temp_dir = resolve_input_source(str(input_path))
+    try:
+        audit = inspect_pdf_features(working_pdf)
+        if audit["encrypted"]:
+            audit["recommended_profile"] = None
+            audit["structural_cleanup_likely"] = False
+            audit["image_recompression_likely_required"] = False
+            _attach_source_metadata(audit, source_metadata)
+            return audit
 
-    private_count = sum(audit["private_payload_indicators"].values())
-    image_count = int(audit["image_count"] or 0)
-    audit["structural_cleanup_likely"] = private_count > 0
-    audit["image_recompression_likely_required"] = image_count > 0
-    if audit["transparency"] or audit["small_raster_images"] or audit["masks"]:
-        audit["recommended_profile"] = "quality"
-    elif image_count:
-        audit["recommended_profile"] = "balanced"
-    else:
-        audit["recommended_profile"] = "balanced"
-    return audit
+        private_count = sum(audit["private_payload_indicators"].values())
+        image_count = int(audit["image_count"] or 0)
+        audit["structural_cleanup_likely"] = private_count > 0
+        audit["image_recompression_likely_required"] = image_count > 0
+        if audit["transparency"] or audit["small_raster_images"] or audit["masks"]:
+            audit["recommended_profile"] = "quality"
+        elif image_count:
+            audit["recommended_profile"] = "balanced"
+        else:
+            audit["recommended_profile"] = "balanced"
+        _attach_source_metadata(audit, source_metadata)
+        return audit
+    finally:
+        if temp_dir is not None:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def _optimize_bilevel_pipeline(
@@ -897,11 +957,22 @@ def _optimize_bilevel_pipeline(
 
 def optimize(args: argparse.Namespace) -> dict[str, Any]:
     args = apply_profile_defaults(args)
-    input_path = Path(args.input_pdf).expanduser().resolve()
-    if not input_path.exists():
-        raise FileNotFoundError(f"Input PDF not found: {input_path}")
-    output_path = output_path_for(input_path, args.output_pdf)
-    if input_path == output_path:
+    source_path, input_path, source_metadata, source_temp_dir = resolve_input_source(args.input_pdf)
+    try:
+        return _optimize_resolved(args, source_path, input_path, source_metadata)
+    finally:
+        if source_temp_dir is not None:
+            shutil.rmtree(source_temp_dir, ignore_errors=True)
+
+
+def _optimize_resolved(
+    args: argparse.Namespace,
+    source_path: Path,
+    input_path: Path,
+    source_metadata: dict[str, Any] | None,
+) -> dict[str, Any]:
+    output_path = output_path_for(source_path, args.output_pdf)
+    if source_path == output_path or input_path == output_path:
         raise ValueError("Output path must be different from input path.")
     if output_path.exists() and not args.force:
         raise FileExistsError(f"Output already exists: {output_path}. Use --force to replace it.")
@@ -915,13 +986,15 @@ def optimize(args: argparse.Namespace) -> dict[str, Any]:
         raise PdfReadError("Encrypted PDFs must be unlocked before optimization.")
 
     if getattr(args, "bilevel", None) is not None:
-        return _optimize_bilevel_pipeline(
+        bilevel_summary = _optimize_bilevel_pipeline(
             args=args,
             input_path=input_path,
             output_path=output_path,
             target=target,
             inspection=inspection,
         )
+        _attach_source_metadata(bilevel_summary, source_metadata)
+        return bilevel_summary
     all_warnings: list[str] = list(inspection.get("warnings", []))
     results: list[dict[str, Any]] = []
 
@@ -1070,7 +1143,26 @@ def optimize(args: argparse.Namespace) -> dict[str, Any]:
         "feature_warnings": inspection,
         "warnings": all_warnings,
     }
+    _attach_source_metadata(summary, source_metadata)
     return summary
+
+
+def _attach_source_metadata(
+    summary: dict[str, Any], source_metadata: dict[str, Any] | None
+) -> None:
+    """When the optimizer converted an Office source to PDF first, surface
+    the original source alongside the PDF metrics so callers can report an
+    end-to-end reduction (e.g. ``38 MB .pptx -> 6 MB .pdf``)."""
+
+    if not source_metadata:
+        return
+    summary["source"] = source_metadata["source_path"]
+    summary["source_bytes"] = source_metadata["source_bytes"]
+    summary["source_mb"] = source_metadata["source_mb"]
+    summary["source_format"] = source_metadata["source_format"]
+    summary["intermediate_pdf_bytes"] = source_metadata["intermediate_pdf_bytes"]
+    summary["intermediate_pdf_mb"] = source_metadata["intermediate_pdf_mb"]
+    summary["converted_via"] = source_metadata["converted_via"]
 
 
 def print_summary(summary: dict[str, Any], *, json_output: bool) -> None:
@@ -1078,9 +1170,18 @@ def print_summary(summary: dict[str, Any], *, json_output: bool) -> None:
         print(json.dumps(summary, indent=2))
         return
 
+    if summary.get("source") and summary["source"] != summary["input"]:
+        print(f"Source: {summary['source']} ({summary['source_format']})")
     print(f"Input:  {summary['input']}")
     print(f"Output: {summary['output']}")
-    print(f"Size:   {summary['input_mb']:.2f} MB -> {summary['output_mb']:.2f} MB")
+    if summary.get("source_mb") is not None:
+        print(
+            f"Size:   {summary['source_mb']:.2f} MB ({summary['source_format']}) "
+            f"-> {summary['intermediate_pdf_mb']:.2f} MB (pdf) "
+            f"-> {summary['output_mb']:.2f} MB (email)"
+        )
+    else:
+        print(f"Size:   {summary['input_mb']:.2f} MB -> {summary['output_mb']:.2f} MB")
     if summary.get("target_min_mb") is not None:
         target_status = "inside range" if summary["within_target_range"] else "outside range"
     else:
@@ -1204,7 +1305,15 @@ def print_audit(summary: dict[str, Any], *, json_output: bool) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input_pdf", help="Source PDF.")
+    parser.add_argument(
+        "input_pdf",
+        metavar="input",
+        help=(
+            "Source document. Accepts .pdf directly; .docx, .doc, .pptx, .ppt, "
+            ".xlsx, .xls, .odt, .odp, .ods, and .rtf are converted to PDF first via "
+            "LibreOffice (install separately)."
+        ),
+    )
     parser.add_argument("output_pdf", nargs="?", help="Optimized PDF path. Defaults to *_email.pdf next to input.")
     parser.add_argument("--target-mb", type=float, default=7.0, help="Maximum desired output size in MB.")
     parser.add_argument("--target", help="Maximum desired output size, such as 7mb. Ranges are accepted too.")
@@ -1298,7 +1407,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.audit:
-            summary = audit_pdf(Path(args.input_pdf).expanduser().resolve())
+            summary = audit_pdf(args.input_pdf)
             print_audit(summary, json_output=args.json)
             return 0
         summary = optimize(args)

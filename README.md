@@ -10,16 +10,24 @@
   <a href="https://pypi.org/project/pdf-email-optimizer/"><img src="https://img.shields.io/badge/python-3.9%2B-3776AB.svg" alt="Python 3.9+"></a>
   <a href="SKILL.md"><img src="https://img.shields.io/badge/Claude%20%2B%20Codex-agent%20ready-555.svg" alt="Claude + Codex agent ready"></a>
   <a href="SKILL.md"><img src="https://img.shields.io/badge/Agent%20Skill-SKILL.md-orange.svg" alt="Agent Skill: SKILL.md"></a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/input-.pdf-555.svg" alt="Input formats">
+  <br>
+  <img src="https://img.shields.io/badge/input-.pdf%20%7C%20.docx%20%7C%20.pptx%20%7C%20.xlsx%20%7C%20.doc%20%7C%20.ppt%20%7C%20.xls%20%7C%20.odt%20%7C%20.odp%20%7C%20.ods-555.svg" alt="Input formats">
   <img src="https://img.shields.io/badge/output-.pdf%20%7C%20.json%20%7C%20.md-6f42c1.svg" alt="Output formats">
 </p>
 
 Optimize PDFs for email-safe sizes while preserving visual quality — available as a command-line tool **and as a Claude and Codex agent skill**. Reduce file sizes while maintaining image quality and appearance. 
 
 PDF Email Optimizer is built for posters, brochures, reports, photo-heavy decks, and design-tool exports (Illustrator, InDesign) that need to fit under a target like 5-7 MB. It starts with structural cleanup, recompresses images only when needed, and reports when a requested size conflicts with visual quality. Agents load it via [SKILL.md](SKILL.md) (Claude) and [agents/openai.yaml](agents/openai.yaml) (Codex).
+
+### Supported inputs
+
+The CLI accepts a PDF directly or any common Office format — `.pdf`, `.docx`, `.doc`, `.pptx`, `.ppt`, `.xlsx`, `.xls`, `.odt`, `.odp`, `.ods`, `.rtf`. Office documents are routed through LibreOffice's headless `--convert-to pdf` step before optimization, so a 38 MB `.pptx` can go straight to a 5 MB email-safe PDF in one command:
+
+```bash
+pdf-email-optimizer big_deck.pptx big_deck_email.pdf --target-mb 5
+```
+
+LibreOffice is treated as an optional system dependency: it is only needed when the input isn't already a PDF. Install it once and forget about it (`brew install --cask libreoffice`, `apt install libreoffice`, `choco install libreoffice-fresh`, or grab the installer from [libreoffice.org](https://www.libreoffice.org/)).
 
 > **Optimizing for fax instead of email?** The sister project [pdf-fax-optimizer](https://github.com/petehottelet/pdf-fax-optimizer) targets fax-machine constraints (bilevel rendering, TIFF/G4 output, page-size discipline) rather than email size and visual fidelity.
 
@@ -94,6 +102,11 @@ python -m pdf_email_optimizer input.pdf output.pdf --target-mb 7
 # Ordinary email optimization
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7
 
+# Office input — converted to PDF first, then optimized
+pdf-email-optimizer big_deck.pptx big_deck_email.pdf --target-mb 5
+pdf-email-optimizer report.docx report_email.pdf --target-mb 5 --quality
+pdf-email-optimizer sheet.xlsx sheet_email.pdf --target-mb 5
+
 # Preserve photos, screenshots, maps, and other detail
 pdf-email-optimizer input.pdf output_email.pdf --target 7mb --quality
 
@@ -110,7 +123,7 @@ pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --report report.md
 pdf-email-optimizer input.pdf --audit
 ```
 
-The source PDF is never overwritten. Existing output files are rejected unless `--force` is supplied.
+The source document is never overwritten. Existing output files are rejected unless `--force` is supplied.
 
 ## Profiles
 

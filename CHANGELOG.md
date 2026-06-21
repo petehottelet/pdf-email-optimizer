@@ -6,6 +6,52 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-21
+
+### Added
+
+- Office document inputs. The CLI now accepts `.docx`, `.doc`, `.pptx`, `.ppt`,
+  `.xlsx`, `.xls`, `.odt`, `.odp`, `.ods`, and `.rtf` directly. Non-PDF inputs
+  are routed through LibreOffice's headless `--convert-to pdf` step before the
+  existing optimizer pipeline runs, so a 38 MB `.pptx` can land at an
+  email-safe 5 MB PDF in a single command.
+- New `pdf_email_optimizer.office_convert` module exposing
+  `find_soffice()`, `is_office_document()`, `convert_to_pdf()`, and the
+  `OfficeConversionError` it raises when LibreOffice is missing or the
+  conversion subprocess fails. The error message contains
+  copy-pasteable install hints for macOS / Linux / Windows.
+- Summary / audit output gains `source`, `source_bytes`, `source_mb`,
+  `source_format`, `intermediate_pdf_bytes`, `intermediate_pdf_mb`, and
+  `converted_via` fields whenever the optimizer had to convert a non-PDF
+  source. These appear in the JSON contract (see
+  [`schema/output-summary.schema.json`](schema/output-summary.schema.json))
+  and on the human-readable summary line as
+  `<size> MB (.pptx) -> <size> MB (pdf) -> <size> MB (email)`.
+
+### Changed
+
+- **BREAKING:** The positional CLI argument is now an ``input`` document
+  rather than strictly an ``input_pdf``. Anything that hard-coded a `.pdf`
+  suffix in the help text will need to update; the actual argument
+  variable name is unchanged, so library callers using
+  `args.input_pdf` continue to work. Scripts that piped a non-PDF into
+  the tool previously got a `FileNotFoundError` or a malformed-PDF
+  failure; on 2.0 the tool now converts it automatically when the
+  suffix matches a supported Office format.
+- README badge block is rendered as a single ``<p>`` so the two rows sit
+  flush against each other instead of carrying a paragraph margin
+  between them.
+- README `Supported inputs` section added directly under the project
+  description, with the LibreOffice install hint for each OS.
+
+### Notes for upgraders
+
+- LibreOffice is required *only* if you pass a non-PDF input. Pure-PDF
+  workflows are unchanged and need no extra dependency.
+- Existing JSON consumers that destructure the summary into a fixed
+  shape should add the new ``source_*`` and ``intermediate_pdf_*``
+  fields to their allow-list; they are absent from PDF-only runs.
+
 ## [1.7.0] - 2026-06-21
 
 ### Added

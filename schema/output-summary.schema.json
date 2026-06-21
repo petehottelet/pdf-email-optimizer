@@ -57,6 +57,16 @@
       "additionalProperties": true
     },
     "quality_ok": { "type": "boolean" },
+    "source": {
+      "type": "string",
+      "description": "Original non-PDF source path when input was an Office document converted to PDF first."
+    },
+    "source_bytes": { "type": "integer", "minimum": 0 },
+    "source_mb": { "type": "number", "minimum": 0 },
+    "source_format": { "type": "string", "description": "Extension of the original source (.docx, .pptx, .xlsx, ...)" },
+    "intermediate_pdf_bytes": { "type": "integer", "minimum": 0 },
+    "intermediate_pdf_mb": { "type": "number", "minimum": 0 },
+    "converted_via": { "type": "string", "enum": ["libreoffice"] },
     "warnings": {
       "type": "array",
       "items": { "type": "string" }

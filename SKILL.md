@@ -1,6 +1,6 @@
 ---
 name: pdf-email-optimizer
-description: Shrink large PDFs to email-safe sizes while preserving visual quality. Use when a PDF is too large to email, attach, send, or upload and must fit under a target size (for example 5-7 MB or a Gmail/Outlook limit) without visibly degrading photos, scans, screenshots, maps, or design-tool exports (Illustrator, InDesign). Supports quality/balanced/aggressive/compress profiles plus opt-in --bilevel for typeset archival scans, audit mode, JSON summaries, Markdown reports, and render QA.
+description: Shrink large PDFs and Office documents to email-safe sizes while preserving visual quality. Use when a PDF, Word doc, PowerPoint deck, or Excel sheet is too large to email, attach, send, or upload and must fit under a target size (for example 5-7 MB or a Gmail/Outlook limit) without visibly degrading photos, scans, screenshots, maps, or design-tool exports (Illustrator, InDesign). Accepts .pdf, .docx, .doc, .pptx, .ppt, .xlsx, .xls, .odt, .odp, .ods, and .rtf inputs (Office formats are converted to PDF via LibreOffice headless mode, then optimized). Supports quality/balanced/aggressive/compress profiles plus opt-in --bilevel for typeset archival scans, audit mode, JSON summaries, Markdown reports, and render QA.
 license: MIT
 ---
 
@@ -8,20 +8,25 @@ license: MIT
 
 ## Core Rules
 
-1. Never overwrite the source PDF. Write an optimized copy to a new path.
-2. Use `--quality` when the user mentions photos, images, screenshots, maps, visual fidelity, sharpness, or "do not degrade."
-3. Use `--balanced` for ordinary email optimization.
-4. Use `--aggressive` only when the user explicitly accepts visible quality loss or asks for the smallest possible file.
-5. Use `--compress` when the user must force a much tighter filesize (e.g. "under 1 MB") and accepts visible compression, but still wants normal RGB output (no bilevel). Always pair it with an explicit `--target-mb`.
-6. Use `--bilevel <DPI>` only for typeset / line-art archival scans (microfilm-style reports, book scans, government archives). It is destructive (1-bit B&W) and must be a deliberate user choice.
-7. Run render QA when available for quality-sensitive work.
-8. Report original size, final size, target status, profile, strategy, and warnings.
-9. If quality mode misses the target, say clearly that the target conflicts with image fidelity.
+1. Never overwrite the source document. Write an optimized copy to a new path.
+2. Accept any supported input format directly — `.pdf`, `.docx`, `.doc`, `.pptx`, `.ppt`, `.xlsx`, `.xls`, `.odt`, `.odp`, `.ods`, `.rtf`. Office files are converted to PDF via LibreOffice automatically; do not ask the user to convert by hand.
+3. Use `--quality` when the user mentions photos, images, screenshots, maps, visual fidelity, sharpness, or "do not degrade."
+4. Use `--balanced` for ordinary email optimization.
+5. Use `--aggressive` only when the user explicitly accepts visible quality loss or asks for the smallest possible file.
+6. Use `--compress` when the user must force a much tighter filesize (e.g. "under 1 MB") and accepts visible compression, but still wants normal RGB output (no bilevel). Always pair it with an explicit `--target-mb`.
+7. Use `--bilevel <DPI>` only for typeset / line-art archival scans (microfilm-style reports, book scans, government archives). It is destructive (1-bit B&W) and must be a deliberate user choice.
+8. Run render QA when available for quality-sensitive work.
+9. Report original source size, intermediate PDF size (if converted), final size, target status, profile, strategy, and warnings.
+10. If quality mode misses the target, say clearly that the target conflicts with image fidelity.
+11. If conversion fails because LibreOffice isn't installed, surface the install hint from the error message (apt / brew / choco / direct download) rather than failing silently.
 
 ## Commands
 
 ```bash
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7
+pdf-email-optimizer deck.pptx deck_email.pdf --target-mb 7 --balanced
+pdf-email-optimizer report.docx report_email.pdf --target-mb 5 --quality
+pdf-email-optimizer sheet.xlsx sheet_email.pdf --target-mb 5
 pdf-email-optimizer input.pdf output_email.pdf --target 7mb --quality
 pdf-email-optimizer input.pdf output_email.pdf --range 5-7mb --quality
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 5 --preferred-mb 5 --balanced
@@ -32,6 +37,7 @@ pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --no-image-recompre
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --json
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --report report.md
 pdf-email-optimizer input.pdf --audit --json
+pdf-email-optimizer deck.pptx --audit --json
 ```
 
 Backward-compatible script form:
@@ -82,4 +88,5 @@ To go smaller, rerun with --profile aggressive or --profile compress, split the 
 - Existing outputs require `--force`.
 - Transparent images may be skipped unless `--flatten-alpha` is appropriate.
 - Ghostscript is optional; if missing, report the warning and keep the best non-Ghostscript result.
+- LibreOffice is required for Office input formats. If `soffice` is missing the tool will raise `OfficeConversionError` with install hints (apt, brew, choco, or libreoffice.org); pass them on to the user verbatim.
 - For high-stakes documents, ask the user to spot-check the final PDF locally.
