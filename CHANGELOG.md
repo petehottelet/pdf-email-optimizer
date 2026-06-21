@@ -14,13 +14,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   accurate as a description of the **input** (`/FlateDecode` + raw
   uncompressed image streams totalling 59.03 MB of pixel data) but
   easy to misread as a claim that the **optimized output** is lossless.
-  The headline 2.93 MB / 95.8% result is the JPEG image-recompress
-  output (worst PSNR 52.6 dB at 2x QA scale, worst per-pixel error
-  0.6/255) - visually indistinguishable but not bit-identical. The
-  pikepdf-only structural rewrite of the same file, documented in
-  [`docs/comparisons.md`](docs/comparisons.md), is the genuine lossless
-  path (53.90 MB / 22.6% / PSNR infinity). README prose now spells this
-  out.
+  README prose now spells this out.
+- Re-tuned the `lossless_huge` headline sample: switched its `SamplePlan`
+  to the `--quality` profile with `image_quality=95` and `target_mb=5.0`
+  so the optimizer deliberately lands at 4.56 MB / **93.5%** /
+  **PSNR 56.8 dB** instead of bottoming out at 2.93 MB. The headroom is
+  what makes the output visually indistinguishable from the source.
+- Re-ran `bank_report` against an updated 32.94 MB PowerPoint source.
+  Tightened the Ghostscript `pdfwrite` path to 110 DPI / Q85 so the
+  email-safe output lands at 6.77 MB (PSNR 35.4 dB) — comfortably inside
+  the 5-7 MB Gmail-attachable band on the new input.
+- Regenerated `docs/charts/before_after.png` and both updated
+  `docs/gallery/` thumbnails. Average reduction across the eight
+  real-world samples is now **73.1%**.
 
 ## [1.6.0] - 2026-06-21
 
