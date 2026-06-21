@@ -11,8 +11,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Source attribution for the three NASA-prefixed sample PDFs:
   `19760021505.pdf`, `19760026509.pdf`, and `20170009128.pdf` are obtained
   from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/).
-  README now links NTRS inline; full per-file provenance lives in
-  [`00_project_files/sample_gov_docs/PROVENANCE.md`](00_project_files/sample_gov_docs/PROVENANCE.md).
+  README now links NTRS inline; full per-file provenance with NTRS
+  accession numbers lives in [`docs/sample-provenance.md`](docs/sample-provenance.md).
 
 ## [1.5.0] - 2026-06-21
 
