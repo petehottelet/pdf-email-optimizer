@@ -133,8 +133,9 @@ The source document is never overwritten. Existing output files are rejected unl
 | `balanced` | General email delivery | Moderate recompression ladder and conservative structural cleanup |
 | `aggressive` | Smallest file matters more than perfect fidelity | Lower quality floor, smaller long-edge caps, optional Ghostscript fallback |
 | `compress` | "Force this under N MB" while keeping RGB visuals (no bilevel) | Deeper recompression ladder (JPEG down to q=30, long-edge down to 800 px); visibly compressed but the page still renders as a normal color photo / document |
+| `--bilevel <DPI>` | Typeset / line-art archival scans (microfilm reports, scanned books, government archives) — never color or photo content | One-shot 1-bit black & white render re-embedded as CCITT Group 4 (fax). Destructive: all color and grayscale information is permanently removed. Not a `--profile` value; invoked separately and requires `pip install 'pdf-email-optimizer[bilevel]'` |
 
-If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps. `compress` and `aggressive` will keep grinding the ladder until the requested target is met.
+If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps. `compress` and `aggressive` will keep grinding the ladder until the requested target is met. `--bilevel` is a one-shot conversion rather than a ladder — rerun with a higher DPI if the result lands below your target.
 
 ### Lossy opt-ins: `--compress` and `--bilevel`
 
