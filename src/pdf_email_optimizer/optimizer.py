@@ -79,9 +79,9 @@ PROFILE_DEFAULTS: dict[str, dict[str, Any]] = {
     # Sub-aggressive recompression that still keeps RGB (no bilevel).
     # Prioritises filesize: lower JPEG floor, smaller long-edge caps, no
     # PSNR floor. Use for "force this under N MB" scenarios where visible
-    # degradation is acceptable but the page must still render as a normal
+    # compression is acceptable but the page must still render as a normal
     # photo / color document.
-    "squeeze": {
+    "compress": {
         "image_quality": 70,
         "min_image_quality": 30,
         "quality_ladder": (70, 60, 55, 50, 45, 40, 35, 30),
@@ -1230,7 +1230,7 @@ def build_parser() -> argparse.ArgumentParser:
     profile_group.add_argument("--quality", dest="profile", action="store_const", const="quality", help="Shortcut for --profile quality.")
     profile_group.add_argument("--balanced", dest="profile", action="store_const", const="balanced", help="Shortcut for --profile balanced.")
     profile_group.add_argument("--aggressive", dest="profile", action="store_const", const="aggressive", help="Shortcut for --profile aggressive.")
-    profile_group.add_argument("--squeeze", dest="profile", action="store_const", const="squeeze", help="Shortcut for --profile squeeze. Prioritises filesize over fidelity while keeping RGB output (no bilevel).")
+    profile_group.add_argument("--compress", dest="profile", action="store_const", const="compress", help="Shortcut for --profile compress. Prioritises filesize over fidelity while keeping RGB output (no bilevel).")
     parser.set_defaults(profile="balanced")
     parser.add_argument("--image-quality", type=int, default=None, help="Starting JPEG quality for image recompression.")
     parser.add_argument("--min-image-quality", type=int, default=None, help="Lowest JPEG quality to try.")

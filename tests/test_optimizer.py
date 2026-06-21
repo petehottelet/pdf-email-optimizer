@@ -65,9 +65,9 @@ def test_aggressive_profile_defaults(tmp_path: Path) -> None:
     assert args.ghostscript == "auto"
 
 
-def test_squeeze_profile_defaults(tmp_path: Path) -> None:
-    args = apply_profile_defaults(parse_args(str(tmp_path / "in.pdf"), str(tmp_path / "out.pdf"), "--squeeze"))
-    assert args.profile == "squeeze"
+def test_compress_profile_defaults(tmp_path: Path) -> None:
+    args = apply_profile_defaults(parse_args(str(tmp_path / "in.pdf"), str(tmp_path / "out.pdf"), "--compress"))
+    assert args.profile == "compress"
     # Lower JPEG floor than aggressive (60), keeps RGB (no bilevel handoff).
     assert args.min_image_quality == 30
     assert args.min_long_edge == 800
@@ -80,9 +80,9 @@ def test_profile_flags_are_mutually_exclusive(tmp_path: Path) -> None:
         parse_args(str(tmp_path / "in.pdf"), str(tmp_path / "out.pdf"), "--quality", "--aggressive")
 
 
-def test_squeeze_flag_is_mutually_exclusive_with_other_profiles(tmp_path: Path) -> None:
+def test_compress_flag_is_mutually_exclusive_with_other_profiles(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
-        parse_args(str(tmp_path / "in.pdf"), str(tmp_path / "out.pdf"), "--squeeze", "--aggressive")
+        parse_args(str(tmp_path / "in.pdf"), str(tmp_path / "out.pdf"), "--compress", "--aggressive")
 
 
 def test_json_output_has_required_fields(tmp_path: Path) -> None:

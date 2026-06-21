@@ -29,7 +29,7 @@
   "properties": {
     "input": { "type": "string" },
     "output": { "type": "string" },
-    "profile": { "enum": ["quality", "balanced", "aggressive", "squeeze"] },
+    "profile": { "enum": ["quality", "balanced", "aggressive", "compress"] },
     "input_bytes": { "type": "integer", "minimum": 0 },
     "output_bytes": { "type": "integer", "minimum": 0 },
     "input_mb": { "type": "number", "minimum": 0 },

@@ -1,6 +1,6 @@
 ---
 name: pdf-email-optimizer
-description: Shrink large PDFs to email-safe sizes while preserving visual quality. Use when a PDF is too large to email, attach, send, or upload and must fit under a target size (for example 5-7 MB or a Gmail/Outlook limit) without visibly degrading photos, scans, screenshots, maps, or design-tool exports (Illustrator, InDesign). Supports quality/balanced/aggressive/squeeze profiles plus opt-in --bilevel for typeset archival scans, audit mode, JSON summaries, Markdown reports, and render QA.
+description: Shrink large PDFs to email-safe sizes while preserving visual quality. Use when a PDF is too large to email, attach, send, or upload and must fit under a target size (for example 5-7 MB or a Gmail/Outlook limit) without visibly degrading photos, scans, screenshots, maps, or design-tool exports (Illustrator, InDesign). Supports quality/balanced/aggressive/compress profiles plus opt-in --bilevel for typeset archival scans, audit mode, JSON summaries, Markdown reports, and render QA.
 license: MIT
 ---
 
@@ -12,7 +12,7 @@ license: MIT
 2. Use `--quality` when the user mentions photos, images, screenshots, maps, visual fidelity, sharpness, or "do not degrade."
 3. Use `--balanced` for ordinary email optimization.
 4. Use `--aggressive` only when the user explicitly accepts visible quality loss or asks for the smallest possible file.
-5. Use `--squeeze` when the user must force a much tighter filesize (e.g. "under 1 MB") and accepts visible compression, but still wants normal RGB output (no bilevel). Always pair it with an explicit `--target-mb`.
+5. Use `--compress` when the user must force a much tighter filesize (e.g. "under 1 MB") and accepts visible compression, but still wants normal RGB output (no bilevel). Always pair it with an explicit `--target-mb`.
 6. Use `--bilevel <DPI>` only for typeset / line-art archival scans (microfilm-style reports, book scans, government archives). It is destructive (1-bit B&W) and must be a deliberate user choice.
 7. Run render QA when available for quality-sensitive work.
 8. Report original size, final size, target status, profile, strategy, and warnings.
@@ -26,7 +26,7 @@ pdf-email-optimizer input.pdf output_email.pdf --target 7mb --quality
 pdf-email-optimizer input.pdf output_email.pdf --range 5-7mb --quality
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 5 --preferred-mb 5 --balanced
 pdf-email-optimizer input.pdf output_small.pdf --target-mb 5 --aggressive
-pdf-email-optimizer input.pdf output_tiny.pdf --target-mb 1 --squeeze
+pdf-email-optimizer input.pdf output_tiny.pdf --target-mb 1 --compress
 pdf-email-optimizer scan.pdf scan_email.pdf --bilevel 100
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --no-image-recompress
 pdf-email-optimizer input.pdf output_email.pdf --target-mb 7 --json
@@ -73,7 +73,7 @@ Use this pattern when `quality` cannot hit the requested target:
 
 ```text
 Target not met. The requested 5 MB target conflicts with the selected quality profile. Output is 8.4 MB.
-To go smaller, rerun with --profile aggressive or --profile squeeze, split the PDF, remove pages, or accept lower image fidelity.
+To go smaller, rerun with --profile aggressive or --profile compress, split the PDF, remove pages, or accept lower image fidelity.
 ```
 
 ## Failure Handling

@@ -8,7 +8,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- New `squeeze` profile (`--squeeze` / `--profile squeeze`): the
+- New `compress` profile (`--compress` / `--profile compress`): the
   intermediate strategy between the visually-lossless ladder
   (`--quality` / `--balanced` / `--aggressive`) and the destructive
   `--bilevel` opt-in. It extends the JPEG quality ladder down to q=30
@@ -22,9 +22,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - "How it compares" tables in `README.md` and `docs/comparisons.md` now
-  include the `--squeeze` row alongside `--bilevel`, so the full
+  include the `--compress` row alongside `--bilevel`, so the full
   spectrum (visually-lossless → lossy-but-RGB → lossy bilevel) is
-  visible in one place. The bilevel and squeeze rows are tagged
+  visible in one place. The bilevel and compress rows are tagged
   "Lossy; prioritizes filesize over fidelity" in the Notes column.
 - Renamed the `lossless_huge` real-world sample from "Lossless image PDF"
   to "Photo PDF (lossless source)" in the README table, chart label,
