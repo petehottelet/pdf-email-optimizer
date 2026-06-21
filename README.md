@@ -200,7 +200,7 @@ The full per-fixture table (input, optimized size, reduction, PSNR) is committed
 
 ## How it compares
 
-The same PDF, run through each tool, gives very different shapes of output:
+Source: 69.65 MB photo PDF with lossless-encoded image streams. The same PDF, run through each tool, gives very different shapes of output:
 
 | Tool | Output | Reduction | Worst PSNR | Notes |
 |---|---:|---:|---:|---|
@@ -214,7 +214,7 @@ The same PDF, run through each tool, gives very different shapes of output:
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | Severely degraded |
 | pikepdf-only (lossless) | 53.90 MB | 22.6% | ∞ | Pixel-identical, but doesn't hit target |
 
-Source: 69.65 MB photo PDF with lossless-encoded image streams. The four optimizer profiles share a 7 MB target except for `--compress`, which is shown at `--target-mb 1` so the row demonstrates what the profile is *for*. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
+The four optimizer profiles share a 7 MB target except for `--compress`, which is shown at `--target-mb 1` so the row demonstrates what the profile is *for*. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
 
 ## Visual QA
 
