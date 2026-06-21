@@ -25,7 +25,7 @@ PDF Email Optimizer is built for posters, brochures, reports, photo-heavy decks,
 
 ## Real-world results
 
-Eight real documents — two PowerPoint decks starting from `.pptx`, two image-heavy PDFs, two government technical reports, and two archival document scans from 1976 — run end-to-end through the optimizer. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
+Eight real documents — two PowerPoint decks starting from `.pptx`, two image-heavy PDFs, two archival NASA technical reports from 1976, one modern NASA government report (2017), and one recent academic paper (2024) — run end-to-end through the optimizer. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
 
 ![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=7)
 
@@ -165,7 +165,7 @@ Before / after pairs from the real-world sample suite. Numbers match the [Real-w
 
 ![Bank report before and after](docs/gallery/bank_report.png?v=4)
 
-PSNR ≥ 40 dB is visually indistinguishable; the optimizer holds every passing sample at or above that. Per-sample `_before.png`, `_after.png`, and `_diff.png` files live under [`docs/gallery/`](docs/gallery/). The amplified diff is at 8x so even sub-pixel differences are visible — if it looks black, the change is invisible at normal zoom.
+PSNR ≥ 40 dB is the commonly cited "visually indistinguishable" threshold; the three photo / mixed-image headlines above (48.6, 56.8, 41.3 dB) all clear it, and the text-dense bank report sits at 35.4 dB — below 40 dB on raw pixel difference but still readable on screen, as the side-by-side render shows. Per-sample `_before.png`, `_after.png`, and `_diff.png` files live under [`docs/gallery/`](docs/gallery/). The amplified diff is at 8x so even sub-pixel differences are visible — if it looks black, the change is invisible at normal zoom.
 
 Synthetic brochure renders (built from CC0 stock images, no real people / places / trademarks — see [`benchmarks/demo_assets/PROVENANCE.md`](benchmarks/demo_assets/PROVENANCE.md)) are kept under [`docs/gallery/`](docs/gallery/) as well; regenerate them with:
 
@@ -203,6 +203,7 @@ The same PDF, run through each tool, gives very different shapes of output:
 | pdf-email-optimizer (`--quality`) | 3.48 MB | 95.0% | 55.8 dB | Visually lossless, hits target |
 | pdf-email-optimizer (`--balanced`) | 2.93 MB | 95.8% | 54.6 dB | Visually lossless, hits target |
 | pdf-email-optimizer (`--aggressive`) | 2.71 MB | 96.1% | 54.0 dB | Visually lossless, hits target |
+| pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | **Destructive on this content.** Bilevel is for typeset / line-art scans, not photo PDFs — included here to show what happens when the wrong tool is applied. |
 | Ghostscript `/printer` | 1.29 MB | 98.2% | 34.5 dB | Visible degradation, no quality floor |
 | Ghostscript `/ebook` | 0.29 MB | 99.6% | 31.6 dB | Severely degraded |
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | Severely degraded |

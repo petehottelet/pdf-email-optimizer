@@ -34,6 +34,7 @@ SRC_DIR = PROJECT_ROOT / "src"
 if SRC_DIR.exists():
     sys.path.insert(0, str(SRC_DIR))
 
+from pdf_email_optimizer import bilevel as bilevel_strategy  # noqa: E402
 from pdf_email_optimizer.optimizer import build_parser, compare_render_quality, optimize  # noqa: E402
 from pdf_email_optimizer.pikepdf_backend import structural_optimize as pikepdf_structural_optimize  # noqa: E402
 
@@ -142,6 +143,41 @@ def run_ghostscript_setting(gs_binary: str, source: Path, setting: str, output_d
     }
 
 
+def run_bilevel(source: Path, output_dir: Path, *, dpi: int = 100) -> dict[str, Any]:
+    """Run the opt-in --bilevel CCITT G4 (fax) strategy at ``dpi``.
+
+    This row is a deliberately educational data point: on photo or grayscale
+    content the strategy is destructive (PSNR collapses to single-digit dB),
+    but the file shrinks dramatically. It's the right answer for typeset /
+    line-art archival scans and the wrong answer for everything else.
+    """
+
+    output = output_dir / f"bilevel_dpi{dpi}.pdf"
+    started = time.perf_counter()
+    try:
+        result = bilevel_strategy.optimize_bilevel(source, output, dpi=dpi)
+    except Exception as exc:  # noqa: BLE001 - surface failures, don't crash the run.
+        return {
+            "tool": f"pdf-email-optimizer (--bilevel {dpi})",
+            "command": f'pdf-email-optimizer "{source.name}" output.pdf --bilevel {dpi}',
+            "runtime_seconds": round(time.perf_counter() - started, 3),
+            "status": "failed",
+            "error": str(exc),
+        }
+    runtime = time.perf_counter() - started
+    metrics = _measure_pair(source, output)
+    return {
+        "tool": f"pdf-email-optimizer (--bilevel {dpi})",
+        "command": f'pdf-email-optimizer "{source.name}" output.pdf --bilevel {dpi}',
+        "runtime_seconds": round(runtime, 3),
+        "status": "ok",
+        "strategy": result.get("strategy", "bilevel-g4"),
+        "bilevel_dpi": result.get("bilevel_dpi", dpi),
+        "bilevel_threshold": result.get("bilevel_threshold"),
+        **metrics,
+    }
+
+
 def run_pikepdf_only(source: Path, output_dir: Path) -> dict[str, Any]:
     output = output_dir / "pikepdf_only.pdf"
     warnings: list[str] = []
@@ -197,6 +233,9 @@ def main() -> int:
     for profile in ("quality", "balanced", "aggressive"):
         print(f"-> optimizer ({profile}) ...", flush=True)
         rows.append(run_optimizer(source, args.target_mb, profile, output_dir))
+
+    print("-> bilevel (--bilevel 100) ...", flush=True)
+    rows.append(run_bilevel(source, output_dir, dpi=100))
 
     if gs_binary:
         for setting in ("screen", "ebook", "printer"):

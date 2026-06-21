@@ -1,6 +1,6 @@
 # How it compares
 
-`pdf-email-optimizer` is one of several tools you can point at an oversized PDF. This page is the honest side-by-side: same input, same target, three profiles of the optimizer, three Ghostscript presets, and a pikepdf-only lossless rewrite. All numbers are produced by [`benchmarks/run_comparisons.py`](../benchmarks/run_comparisons.py); the exact commands are listed below so anyone can reproduce them.
+`pdf-email-optimizer` is one of several tools you can point at an oversized PDF. This page is the honest side-by-side: same input, same target, three profiles of the optimizer, the opt-in `--bilevel` strategy (included to show what happens when it's applied to the wrong content), three Ghostscript presets, and a pikepdf-only lossless rewrite. All numbers are produced by [`benchmarks/run_comparisons.py`](../benchmarks/run_comparisons.py); the exact commands are listed below so anyone can reproduce them.
 
 Methodology:
 
@@ -20,6 +20,7 @@ Results from [`benchmarks/results/comparisons.json`](../benchmarks/results/compa
 | pdf-email-optimizer (`--quality`) | 3.48 MB | 95.0% | 55.8 dB | 0.42 | Visually lossless, hits target |
 | pdf-email-optimizer (`--balanced`) | 2.93 MB | 95.8% | 54.6 dB | 0.47 | Visually lossless, hits target |
 | pdf-email-optimizer (`--aggressive`) | 2.71 MB | 96.1% | 54.0 dB | 0.51 | Visually lossless, hits target |
+| pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | 71.6 | **Destructive on this content.** Bilevel is the right tool for typeset / line-art scans, not photo PDFs. Shown here so the failure mode is explicit. |
 | Ghostscript `/printer` | 1.29 MB | 98.2% | 34.5 dB | 4.82 | Visible degradation, no quality floor |
 | Ghostscript `/ebook` | 0.29 MB | 99.6% | 31.6 dB | 6.69 | Severely degraded |
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | 11.2 | Severely degraded |
@@ -40,9 +41,10 @@ python benchmarks/run_comparisons.py \
 
 - All three optimizer profiles **hit the email target** while staying above PSNR 54 dB - visually lossless rendering at scale. The widely-cited "visually indistinguishable" threshold is about 38-40 dB.
 - Every Ghostscript preset goes **smaller than asked**, but trades real visual fidelity. `/screen` ends up at PSNR 27 dB, which is well into "people will notice."
+- `--bilevel 100` produces a **21 KB** file — the smallest output in the table — at PSNR 11 dB. The photo content has been quantized to 1-bit black/white squares; the file is technically valid but the photos are gone. This row is included to make the failure mode explicit: bilevel is the right answer for typeset / line-art archival scans (it took the 88.68 MB 1976 NASA scan in [Real-world results](../README.md#real-world-results) down to 5.27 MB while keeping text legible) and the wrong answer for everything else.
 - The pikepdf-only run is the strictly safe ceiling (no pixel changes) but doesn't hit any kind of email target on a PDF this big.
 
-In other words: if you want the smallest possible file regardless of quality, Ghostscript `/screen` wins. If you want the smallest file that still looks like the original on screen and inside email clients, the optimizer wins.
+In other words: if you want the smallest possible file that still looks like the original on screen and inside email clients, the optimizer's `--quality` / `--balanced` / `--aggressive` profiles win. If your source is a typeset / line-art scan, the opt-in `--bilevel` strategy outperforms every other tool here. If you want raw smallness regardless of quality on photo content, Ghostscript `/screen` is the right comparison.
 
 ## Exact Ghostscript commands
 
@@ -73,6 +75,15 @@ gs -sDEVICE=pdfwrite \
    -sOutputFile=output.pdf \
    input.pdf
 ```
+
+The `--bilevel` row corresponds to:
+
+```bash
+pip install "pdf-email-optimizer[bilevel]"
+pdf-email-optimizer input.pdf output.pdf --bilevel 100
+```
+
+(See [README — Archival opt-in: `--bilevel`](../README.md#archival-opt-in---bilevel) for the threshold/DPI flags.)
 
 The pikepdf row corresponds to the lossless structural rewrite `pdf-email-optimizer` calls internally:
 
