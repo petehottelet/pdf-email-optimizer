@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Renamed the `lossless_huge` real-world sample from "Lossless image PDF"
+  to "Photo PDF (lossless source)" in the README table, chart label,
+  gallery caption, and corpus documentation. The previous name was
+  accurate as a description of the **input** (`/FlateDecode` + raw
+  uncompressed image streams totalling 59.03 MB of pixel data) but
+  easy to misread as a claim that the **optimized output** is lossless.
+  The headline 2.93 MB / 95.8% result is the JPEG image-recompress
+  output (worst PSNR 52.6 dB at 2x QA scale, worst per-pixel error
+  0.6/255) - visually indistinguishable but not bit-identical. The
+  pikepdf-only structural rewrite of the same file, documented in
+  [`docs/comparisons.md`](docs/comparisons.md), is the genuine lossless
+  path (53.90 MB / 22.6% / PSNR infinity). README prose now spells this
+  out.
+
 ## [1.6.0] - 2026-06-21
 
 ### Added

@@ -74,7 +74,7 @@
   },
   {
     "sample_id": "lossless_huge",
-    "label": "Lossless image PDF",
+    "label": "Photo PDF (lossless source)",
     "category": "lossless_images",
     "description": "71 MB PDF saved with lossless image encoding; large headroom for recompression.",
     "status": "ok",

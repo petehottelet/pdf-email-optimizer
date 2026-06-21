@@ -43,7 +43,7 @@
   },
   {
     "case": "lossless_huge",
-    "label": "Lossless image PDF",
+    "label": "Photo PDF (lossless source)",
     "category": "lossless_images",
     "status": "ok",
     "input_mb": 69.653,

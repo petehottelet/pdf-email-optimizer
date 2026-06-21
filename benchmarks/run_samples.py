@@ -113,7 +113,7 @@ SAMPLE_PLANS: list[SamplePlan] = [
     ),
     SamplePlan(
         sample_id="lossless_huge",
-        label="Lossless image PDF",
+        label="Photo PDF (lossless source)",
         category="lossless_images",
         source_name="sample_lossless_huge.pdf",
         target_mb=7.0,

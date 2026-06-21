@@ -59,7 +59,7 @@ DEFAULT_ORDER = (
 
 SHORT_LABELS = {
     "travel_contact_sheet": "Photo brochure",
-    "lossless_huge": "Lossless image PDF",
+    "lossless_huge": "Photo PDF (lossless src.)",
     "financial_proposal": "Financial proposal",
     "bank_report": "Bank report",
     "gov_2017": "Govt. report 2017",

@@ -57,7 +57,7 @@ The validation sprint targets at least 12 categories covering the situations use
 | embedded_metadata | metadata_cleanup | `benchmarks/fixtures/embedded_metadata.pdf` (synthetic, CC0) |
 | creator_metadata | metadata_cleanup | `benchmarks/fixtures/creator_metadata.pdf` (synthetic, CC0) |
 
-The real-world sample suite documented in [`benchmarks/run_samples.py`](../run_samples.py) extends this with five additional cases (photo brochure, lossless image PDF, marketing deck, screenshot-heavy deck, spreadsheet export) using sample documents that live outside the repo because of their size.
+The real-world sample suite documented in [`benchmarks/run_samples.py`](../run_samples.py) extends this with the photo brochure, the photo PDF with lossless-encoded source streams, the financial / bank PowerPoint decks, modern government and academic reports, and 1976 archival NASA scans - all sourced from documents that live outside the repo because of their size.
 
 ## Adding a fixture
 

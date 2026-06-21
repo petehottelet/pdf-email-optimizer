@@ -27,7 +27,7 @@ PDF Email Optimizer is built for posters, brochures, reports, photo-heavy decks,
 
 Eight real documents — two PowerPoint decks starting from `.pptx`, two image-heavy PDFs, two government technical reports, and two archival document scans from 1976 — run end-to-end through the optimizer. Numbers are emitted by [`benchmarks/run_samples.py`](benchmarks/run_samples.py); the chart and gallery come from [`benchmarks/make_charts.py`](benchmarks/make_charts.py) and [`benchmarks/make_gallery.py`](benchmarks/make_gallery.py).
 
-![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=4)
+![Real-world filesize reduction: original document vs email-safe PDF](docs/charts/before_after.png?v=5)
 
 <table width="100%">
 <thead>
@@ -42,7 +42,7 @@ Eight real documents — two PowerPoint decks starting from `.pptx`, two image-h
 <tbody>
 <tr><td>Photo brochure</td><td align="right">138.74 MB <code>.pdf</code></td><td align="right"><b>6.51 MB</b></td><td align="right"><b>95.3%</b></td><td align="right">48.6 dB</td></tr>
 <tr><td>Archival scan, 1976 (B)</td><td align="right">88.68 MB <code>.pdf</code></td><td align="right"><b>23.80 MB</b></td><td align="right"><b>73.2%</b></td><td align="right">32.5 dB</td></tr>
-<tr><td>Lossless image PDF</td><td align="right">69.65 MB <code>.pdf</code></td><td align="right"><b>2.93 MB</b></td><td align="right"><b>95.8%</b></td><td align="right">54.6 dB</td></tr>
+<tr><td>Photo PDF (lossless source)</td><td align="right">69.65 MB <code>.pdf</code></td><td align="right"><b>2.93 MB</b></td><td align="right"><b>95.8%</b></td><td align="right">54.6 dB</td></tr>
 <tr><td>Financial services proposal</td><td align="right">36.31 MB <code>.pptx</code></td><td align="right"><b>4.97 MB</b></td><td align="right"><b>86.3%</b></td><td align="right">41.3 dB</td></tr>
 <tr><td>Archival scan, 1976 (A)</td><td align="right">33.04 MB <code>.pdf</code></td><td align="right"><b>6.65 MB</b></td><td align="right"><b>79.9%</b></td><td align="right">1-bit B&amp;W</td></tr>
 <tr><td>Bank report</td><td align="right">30.16 MB <code>.pptx</code></td><td align="right"><b>7.41 MB</b></td><td align="right"><b>75.5%</b></td><td align="right">38.7 dB</td></tr>
@@ -51,7 +51,7 @@ Eight real documents — two PowerPoint decks starting from `.pptx`, two image-h
 </tbody>
 </table>
 
-Average reduction across all eight: **72.9%**. The headline samples (photo brochure, lossless image PDF, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. The 192-page archival scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB — visible compression but legible at email zoom, and now under Gmail's 25 MB attachment limit. The 606-page typeset NASA report (1976 A) is the file where ordinary recompression hits a floor: even Ghostscript's lossless rewrite only gets to 20 MB. Opting into the **bilevel CCITT G4 (fax)** strategy with `--bilevel 75` re-renders every page as 1-bit black-and-white at 75 DPI, drops it to **6.65 MB**, and keeps the typeset text and line-art crisp. That last one is deliberately opt-in: bilevel destroys color and grayscale information, so it's appropriate for archival typeset scans but never auto-selected. The modern government report and research paper both clear 7 MB with the standard ladder.
+Average reduction across all eight: **72.9%**. The headline samples (photo brochure, photo PDF with lossless source, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. ("Lossless source" describes the input file's image encoding — `/FlateDecode` and raw uncompressed streams — not the optimized output. The optimizer's headline path re-encodes those streams as JPEG at PSNR > 50 dB: visually indistinguishable but not bit-identical. The pikepdf-only lossless rewrite of this same file is 53.90 MB / 22.6% reduction; see [How it compares](#how-it-compares) below.) The 192-page archival scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB — visible compression but legible at email zoom, and now under Gmail's 25 MB attachment limit. The 606-page typeset NASA report (1976 A) is the file where ordinary recompression hits a floor: even Ghostscript's lossless rewrite only gets to 20 MB. Opting into the **bilevel CCITT G4 (fax)** strategy with `--bilevel 75` re-renders every page as 1-bit black-and-white at 75 DPI, drops it to **6.65 MB**, and keeps the typeset text and line-art crisp. That last one is deliberately opt-in: bilevel destroys color and grayscale information, so it's appropriate for archival typeset scans but never auto-selected. The modern government report and research paper both clear 7 MB with the standard ladder.
 
 > **Sample sources.** The three NASA-prefixed PDFs in this table — Archival scan 1976 (A) (`19760021505.pdf`), Archival scan 1976 (B) (`19760026509.pdf`), and Government report 2017 (`20170009128.pdf`) — are publicly available documents from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/). Full provenance, NTRS accession numbers, and the project's policy on the rendered samples live in [`docs/sample-provenance.md`](docs/sample-provenance.md).
 
@@ -153,9 +153,9 @@ Before / after pairs from the real-world sample suite. Numbers match the [Real-w
 
 ![Photo brochure before and after](docs/gallery/travel_contact_sheet.png?v=3)
 
-**Lossless image PDF — 69.65 MB `.pdf` → 2.93 MB email PDF (95.8% smaller, PSNR 54.6 dB)**
+**Photo PDF (lossless source) — 69.65 MB `.pdf` → 2.93 MB email PDF (95.8% smaller, PSNR 54.6 dB)**
 
-![Lossless image PDF before and after](docs/gallery/lossless_huge.png?v=3)
+![Photo PDF (lossless source) before and after](docs/gallery/lossless_huge.png?v=3)
 
 **Financial services proposal — 36.31 MB `.pptx` → 4.97 MB email PDF (86.3% smaller, PSNR 41.3 dB)**
 
@@ -208,7 +208,7 @@ The same PDF, run through each tool, gives very different shapes of output:
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | Severely degraded |
 | pikepdf-only (lossless) | 53.90 MB | 22.6% | ∞ | Pixel-identical, but doesn't hit target |
 
-Source: 69.65 MB lossless image PDF, target 7 MB. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
+Source: 69.65 MB photo PDF with lossless-encoded image streams, target 7 MB. Full table, methodology, and exact reproduction commands in [`docs/comparisons.md`](docs/comparisons.md). Regenerate with `python benchmarks/run_comparisons.py --source <pdf> --target-mb 7`.
 
 ## Visual QA
 
