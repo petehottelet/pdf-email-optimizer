@@ -20,7 +20,7 @@ Results from [`benchmarks/results/comparisons.json`](../benchmarks/results/compa
 | pdf-email-optimizer (`--quality`) | 3.48 MB | 95.0% | 55.8 dB | 0.42 | Visually lossless, hits target |
 | pdf-email-optimizer (`--balanced`) | 2.93 MB | 95.8% | 54.6 dB | 0.47 | Visually lossless, hits target |
 | pdf-email-optimizer (`--aggressive`) | 2.71 MB | 96.1% | 54.0 dB | 0.51 | Visually lossless, hits target |
-| pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | 71.6 | **Destructive on this content.** Bilevel is the right tool for typeset / line-art scans, not photo PDFs. Shown here so the failure mode is explicit. |
+| pdf-email-optimizer (`--bilevel 100`) | 0.02 MB | 100.0% | 11.0 dB | 71.6 | Lossy; prioritizes filesize over fidelity. For typeset / line-art scans. |
 | Ghostscript `/printer` | 1.29 MB | 98.2% | 34.5 dB | 4.82 | Visible degradation, no quality floor |
 | Ghostscript `/ebook` | 0.29 MB | 99.6% | 31.6 dB | 6.69 | Severely degraded |
 | Ghostscript `/screen` | 0.12 MB | 99.8% | 27.2 dB | 11.2 | Severely degraded |
