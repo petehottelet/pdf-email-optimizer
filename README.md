@@ -123,9 +123,18 @@ The source PDF is never overwritten. Existing output files are rejected unless `
 
 If `quality` mode cannot hit the requested size, the tool keeps the smallest quality-preserving output and emits a direct warning with next steps. `compress` and `aggressive` will keep grinding the ladder until the requested target is met.
 
-### Archival opt-in: `--bilevel`
+### Lossy opt-ins: `--compress` and `--bilevel`
 
-For typeset / line-art archival scans where the page is fundamentally black ink on paper (microfilmed reports, scanned books, government archives), the bilevel CCITT Group 4 (fax) strategy compresses to a fraction of what JPEG-based recompression can reach:
+When the visually-lossless ladder can't hit your target, two opt-in strategies trade fidelity for filesize. Neither is selected automatically by `quality` / `balanced` / `aggressive` — you ask for them by name.
+
+**`--compress` — aggressive JPEG, still RGB.** Use when the page should keep looking like a normal color photo / document but the file *must* land under a tight budget. The recompression ladder runs deeper than `aggressive` (JPEG down to q=30, long-edge down to 800 px), so the result is visibly recompressed up close but stays a regular RGB PDF. On a 69.65 MB photo PDF, `--compress --target-mb 1` lands at 0.81 MB / PSNR 44.6 dB.
+
+```bash
+# Force under 1 MB; output is still a color photo PDF, just visibly compressed.
+pdf-email-optimizer input.pdf output_email.pdf --target-mb 1 --compress
+```
+
+**`--bilevel` — destructive 1-bit CCITT G4.** Use only on typeset / line-art archival scans where the page is fundamentally black ink on paper (microfilmed reports, scanned books, government archives). Every page is rendered as 1-bit black & white and re-embedded with CCITT Group 4 (fax) compression — color, grayscale, and photographic content are gone afterward. Ships as an optional install because it depends on `img2pdf`:
 
 ```bash
 pip install "pdf-email-optimizer[bilevel]"
@@ -137,7 +146,7 @@ pdf-email-optimizer scan.pdf scan_email.pdf --bilevel 75
 pdf-email-optimizer scan.pdf scan_email.pdf --bilevel 100 --bilevel-threshold 180
 ```
 
-This is destructive — every gray pixel becomes pure black or pure white — so the optimizer never auto-selects it. Use it only when you know the source is black-on-white content. Render QA still runs but the PSNR number is no longer comparable to the grayscale results above; visual review is the right check.
+**Why both are opt-in.** The default ladder is allowed to give up and warn rather than degrade a page past a recognizable point. `--compress` will keep grinding the JPEG ladder until your target is met; `--bilevel` discards color and grayscale entirely. Both are correct answers for the right document, but neither is something the optimizer should reach for on your behalf — you have to know it's the right call. Render QA still runs in both modes; for `--bilevel` the PSNR number is no longer comparable to the visually-lossless results above, so visual review is the right check.
 
 ## Output
 
