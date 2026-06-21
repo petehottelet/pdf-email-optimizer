@@ -32,11 +32,11 @@ Eight real documents — two PowerPoint decks starting from `.pptx`, two image-h
 <table width="100%">
 <thead>
 <tr>
-<th width="34%" align="left">Sample</th>
-<th width="20%" align="right">Original</th>
-<th width="16%" align="right">Email PDF</th>
-<th width="14%" align="right">Reduction</th>
-<th width="16%" align="right">PSNR</th>
+<th width="34%" align="left"><img src="docs/transparent-1px.png" width="300" height="1" alt="" />Sample</th>
+<th width="20%" align="right"><img src="docs/transparent-1px.png" width="176" height="1" alt="" />Original</th>
+<th width="16%" align="right"><img src="docs/transparent-1px.png" width="141" height="1" alt="" />Email PDF</th>
+<th width="14%" align="right"><img src="docs/transparent-1px.png" width="123" height="1" alt="" />Reduction</th>
+<th width="16%" align="right"><img src="docs/transparent-1px.png" width="141" height="1" alt="" />PSNR</th>
 </tr>
 </thead>
 <tbody>
