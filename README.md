@@ -53,6 +53,8 @@ Eight real documents — two PowerPoint decks starting from `.pptx`, two image-h
 
 Average reduction across all eight: **67.6%**. The headline samples (photo brochure, lossless image PDF, financial proposal, bank report) all land under 8 MB, in the Gmail-attachable range, and all clear or sit right at the PSNR 40 dB "visually indistinguishable" threshold. The two archival 1976 NASA scans are the honest end of the spectrum: dense raster pages from a film-scan workflow, with little structural fat. The 606-page scan (1976 A) rewrites lossless (PSNR ∞) and still drops from 33 MB to **20.58 MB**; the 192-page scan (1976 B) goes from 89 MB to **23.80 MB** at PSNR 32.5 dB (visible compression but legible at email zoom) — both now fit under Gmail's 25 MB attachment limit, where neither did before. The modern government report and research paper both clear 7 MB cleanly.
 
+> **Sample sources.** The three NASA-prefixed PDFs in this table — Archival scan 1976 (A) (`19760021505.pdf`), Archival scan 1976 (B) (`19760026509.pdf`), and Government report 2017 (`20170009128.pdf`) — are publicly available documents from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/). Full provenance, source URLs, and the project's policy on redistributing the rendered samples are in [`00_project_files/sample_gov_docs/PROVENANCE.md`](00_project_files/sample_gov_docs/PROVENANCE.md).
+
 For PowerPoint and Excel starting points, the conversion is one command:
 
 ```bash

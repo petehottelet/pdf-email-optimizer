@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Source attribution for the three NASA-prefixed sample PDFs:
+  `19760021505.pdf`, `19760026509.pdf`, and `20170009128.pdf` are obtained
+  from the [NASA Technical Reports Server (NTRS)](https://ntrs.nasa.gov/).
+  README now links NTRS inline; full per-file provenance lives in
+  [`00_project_files/sample_gov_docs/PROVENANCE.md`](00_project_files/sample_gov_docs/PROVENANCE.md).
+
 ## [1.5.0] - 2026-06-21
 
 ### Added
