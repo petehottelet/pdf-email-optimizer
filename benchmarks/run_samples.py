@@ -164,11 +164,11 @@ SAMPLE_PLANS: list[SamplePlan] = [
         label="Archival scan (1976, B)",
         category="archival_scan",
         source_name="19760026509.pdf",
-        target_mb=24.0,
+        target_mb=6.0,
         profile="balanced",
-        description="89 MB, 192-page archival scan dense with high-DPI raster pages. Compressed with Ghostscript pdfwrite at 120 DPI / JPEG q=82 - PSNR 32.5 dB (an honest archival-quality result), still cuts the file from 89 MB to ~24 MB so it now fits under Gmail's 25 MB attachment limit.",
-        ghostscript_image_dpi=120,
-        ghostscript_jpeg_quality=82,
+        description="89 MB, 192-page archival scan: typeset text, dense tables, and line-art maps - no photos. Optimized with the opt-in --bilevel 100 strategy (1-bit CCITT G4 at 100 DPI) so the file drops from 89 MB to ~5.3 MB while keeping text and contour lines legible.",
+        bilevel_dpi=100,
+        bilevel_threshold=200,
     ),
 ]
 

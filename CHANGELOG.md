@@ -24,9 +24,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Tightened the Ghostscript `pdfwrite` path to 110 DPI / Q85 so the
   email-safe output lands at 6.77 MB (PSNR 35.4 dB) — comfortably inside
   the 5-7 MB Gmail-attachable band on the new input.
-- Regenerated `docs/charts/before_after.png` and both updated
+- Switched `archive_scan_1976b` (192-page NASA EREP report; typeset text,
+  dense tables, and line-art maps) from the balanced Ghostscript path to
+  the opt-in `--bilevel 100` strategy. Output drops from 23.80 MB to
+  **5.27 MB** (94.1% reduction) while keeping fine-text and contour
+  lines legible. Both archival NASA reports now share the same bilevel
+  treatment.
+- Regenerated `docs/charts/before_after.png` and the updated
   `docs/gallery/` thumbnails. Average reduction across the eight
-  real-world samples is now **73.1%**.
+  real-world samples is now **75.7%**.
 
 ## [1.6.0] - 2026-06-21
 
