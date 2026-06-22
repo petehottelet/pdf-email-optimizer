@@ -125,6 +125,25 @@ pdf-email-optimizer input.pdf --audit
 
 The source document is never overwritten. Existing output files are rejected unless `--force` is supplied.
 
+### Use as a Python library
+
+The CLI is a thin shell over an importable library. Drive it with a typed
+`OptimizeConfig` (no `argparse` required):
+
+```python
+from pdf_email_optimizer import optimize, audit, OptimizeConfig
+
+summary = optimize(OptimizeConfig(input="big_deck.pptx", output="deck_email.pdf", target_mb=5))
+print(summary["output_mb"], summary["strategy"])
+
+report = audit("scan.pdf")  # inspection + recommended_profile / recommended_strategy
+```
+
+> **Upgrading from 2.x:** `optimize()` / `audit()` now take an `OptimizeConfig`
+> instead of parsed CLI args, and the internals were split out of the old
+> `pdf_email_optimizer.optimizer` module. See the [CHANGELOG](CHANGELOG.md) for
+> the full move map. The CLI itself is unchanged.
+
 ## Profiles
 
 | Profile | Use When | Behavior |

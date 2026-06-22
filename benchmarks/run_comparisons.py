@@ -36,8 +36,11 @@ if SRC_DIR.exists():
     sys.path.insert(0, str(SRC_DIR))
 
 from pdf_email_optimizer import bilevel as bilevel_strategy  # noqa: E402
-from pdf_email_optimizer.optimizer import build_parser, compare_render_quality, optimize  # noqa: E402
+from pdf_email_optimizer import optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
 from pdf_email_optimizer.pikepdf_backend import structural_optimize as pikepdf_structural_optimize  # noqa: E402
+from pdf_email_optimizer.render_qa import compare_render_quality  # noqa: E402
 
 GHOSTSCRIPT_DEFAULT = r"C:\Program Files\gs\gs10.07.1\bin"
 
@@ -89,7 +92,7 @@ def run_optimizer(source: Path, target_mb: float, profile: str, output_dir: Path
             "--skip-render-qa",
         ]
     )
-    summary = optimize(args)
+    summary = optimize(OptimizeConfig.from_cli_args(args))
     runtime = time.perf_counter() - started
     metrics = _measure_pair(source, output)
     return {

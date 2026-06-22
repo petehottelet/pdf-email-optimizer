@@ -31,7 +31,9 @@ if SRC_DIR.exists():
 
 from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 
-from pdf_email_optimizer.optimizer import build_parser, optimize  # noqa: E402
+from pdf_email_optimizer import optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
 from pdf_email_optimizer.render_qa import render_page  # noqa: E402
 
 SOURCE_DIR = PROJECT_ROOT / "demo" / "originals"
@@ -115,7 +117,7 @@ def build_case(stem: str, label: str, detail_page: int, crop, out_dir: Path) -> 
         args = build_parser().parse_args(
             [str(source), str(optimized), "--target-mb", "7", "--quality", "--force"]
         )
-        summary = optimize(args)
+        summary = optimize(OptimizeConfig.from_cli_args(args))
         cover_o = render_page(source, 0, scale=2.0)
         cover_c = render_page(optimized, 0, scale=2.0)
         detail_o = render_page(source, detail_page, scale=2.0)

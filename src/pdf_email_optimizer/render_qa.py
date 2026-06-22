@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Render two PDFs and report page-level pixel differences."""
+"""Render PDFs and report page-level pixel differences.
+
+This module is both the standalone ``pdf-email-render-compare`` CLI and the
+optimizer's internal render-QA gate. The two used to carry duplicate rendering
+code; they now share a single :func:`render_page` implementation.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -26,6 +32,133 @@ def render_page(pdf_path: Path, page_index: int, scale: float) -> Image.Image:
         return page.render(scale=scale).to_pil().convert("RGB")
     finally:
         document.close()
+
+
+# Backwards-compatible alias for the optimizer-internal name.
+def render_pdf_page(pdf_path: Path, page_index: int, scale: float) -> Image.Image:
+    return render_page(pdf_path, page_index, scale)
+
+
+def compare_render_quality(
+    original_path: Path,
+    candidate_path: Path,
+    *,
+    scale: float,
+    max_pages: int,
+) -> dict[str, Any]:
+    """Compute worst-case RMS / PSNR between an original and a candidate render.
+
+    Used by the optimizer to gate lossy candidates. Distinct from
+    :func:`compare_pdfs` (the CLI report), which emits per-page diffs and
+    optional diff PNGs rather than a pass/fail PSNR figure.
+    """
+
+    if pdfium is None:
+        raise RuntimeError("pypdfium2 is required for render QA.")
+
+    original_doc = pdfium.PdfDocument(str(original_path))
+    candidate_doc = pdfium.PdfDocument(str(candidate_path))
+    try:
+        original_pages = len(original_doc)
+        candidate_pages = len(candidate_doc)
+    finally:
+        original_doc.close()
+        candidate_doc.close()
+
+    page_count = min(original_pages, candidate_pages, max_pages)
+    page_results: list[dict[str, Any]] = []
+    worst_rms = 0.0
+    worst_psnr = float("inf")
+
+    for page_index in range(page_count):
+        original_image = render_page(original_path, page_index, scale)
+        candidate_image = render_page(candidate_path, page_index, scale)
+        if original_image.size != candidate_image.size:
+            # Sub-point page rounding (e.g. img2pdf-derived pages) can yield
+            # 1-2 pixel deltas at the QA scale. Resize the candidate to match
+            # the original so we can still compute a meaningful PSNR; tag the
+            # result so callers know the comparison was approximated.
+            ow, oh = original_image.size
+            cw, ch = candidate_image.size
+            if abs(ow - cw) <= 4 and abs(oh - ch) <= 4:
+                candidate_image = candidate_image.resize(original_image.size, Image.Resampling.LANCZOS)
+            else:
+                page_results.append(
+                    {
+                        "page": page_index + 1,
+                        "same_size": False,
+                        "original_size": original_image.size,
+                        "candidate_size": candidate_image.size,
+                    }
+                )
+                worst_rms = float("inf")
+                worst_psnr = 0.0
+                continue
+
+        diff = ImageChops.difference(original_image, candidate_image)
+        stat = ImageStat.Stat(diff)
+        rms = (sum(value * value for value in stat.rms) / len(stat.rms)) ** 0.5
+        mse = rms * rms
+        psnr = float("inf") if mse == 0 else 20 * math.log10(255.0 / math.sqrt(mse))
+        worst_rms = max(worst_rms, rms)
+        worst_psnr = min(worst_psnr, psnr)
+        page_results.append(
+            {
+                "page": page_index + 1,
+                "same_size": True,
+                "rms": round(rms, 6),
+                "psnr": "inf" if math.isinf(psnr) else round(psnr, 3),
+            }
+        )
+
+    return {
+        "original_pages": original_pages,
+        "candidate_pages": candidate_pages,
+        "compared_pages": page_count,
+        "worst_rms": "inf" if math.isinf(worst_rms) else round(worst_rms, 6),
+        "worst_psnr": "inf" if math.isinf(worst_psnr) else round(worst_psnr, 3),
+        "pages": page_results,
+    }
+
+
+def mark_render_quality(
+    result: dict[str, Any],
+    original_path: Path,
+    *,
+    render_qa: bool,
+    min_render_psnr: float | None,
+    max_render_rms: float | None,
+    qa_scale: float,
+    qa_max_pages: int,
+) -> dict[str, Any]:
+    result["quality_ok"] = True
+    if not render_qa:
+        return result
+
+    try:
+        qa = compare_render_quality(original_path, Path(result["path"]), scale=qa_scale, max_pages=qa_max_pages)
+    except Exception as exc:  # noqa: BLE001
+        result["quality_ok"] = False
+        result.setdefault("warnings", []).append(f"Render QA unavailable; rejected lossy candidate: {exc}")
+        return result
+
+    result["render_qa"] = qa
+    worst_psnr = qa["worst_psnr"]
+    worst_rms = qa["worst_rms"]
+    numeric_psnr = float("inf") if isinstance(worst_psnr, str) else float(worst_psnr)
+    numeric_rms = float("inf") if isinstance(worst_rms, str) else float(worst_rms)
+
+    if min_render_psnr is not None and numeric_psnr < min_render_psnr:
+        result["quality_ok"] = False
+        result.setdefault("warnings", []).append(
+            f"Rejected candidate: render PSNR {numeric_psnr:.2f} is below {min_render_psnr:.2f}."
+        )
+    if max_render_rms is not None and numeric_rms > max_render_rms:
+        result["quality_ok"] = False
+        result.setdefault("warnings", []).append(
+            f"Rejected candidate: render RMS {numeric_rms:.2f} is above {max_render_rms:.2f}."
+        )
+    return result
 
 
 def changed_percent(diff: Image.Image) -> float:

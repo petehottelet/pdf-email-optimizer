@@ -16,7 +16,10 @@ SRC_DIR = PROJECT_ROOT / "src"
 if SRC_DIR.exists():
     sys.path.insert(0, str(SRC_DIR))
 
-from pdf_email_optimizer.optimizer import build_parser, compare_render_quality, optimize  # noqa: E402
+from pdf_email_optimizer import optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
+from pdf_email_optimizer.render_qa import compare_render_quality  # noqa: E402
 
 
 def parse_scalar(value: str) -> Any:
@@ -145,7 +148,7 @@ def run_case(case: dict[str, Any], output_dir: Path) -> dict[str, Any]:
     )
     started = time.perf_counter()
     try:
-        summary = optimize(args)
+        summary = optimize(OptimizeConfig.from_cli_args(args))
     except Exception as exc:  # noqa: BLE001
         return {
             "case_id": case["id"],

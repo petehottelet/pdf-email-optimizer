@@ -34,7 +34,9 @@ if SRC_DIR.exists():
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont  # noqa: E402
 
-from pdf_email_optimizer.optimizer import build_parser, optimize  # noqa: E402
+from pdf_email_optimizer import optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
 from pdf_email_optimizer.render_qa import render_page  # noqa: E402
 
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "docs" / "gallery"
@@ -243,7 +245,7 @@ def _build_from_fixtures(output_dir: Path) -> list[dict[str, Any]]:
                     "--skip-render-qa",
                 ]
             )
-            summary = optimize(args)
+            summary = optimize(OptimizeConfig.from_cli_args(args))
             rendered = _render_pair(source, optimized)
             if rendered is None:
                 results.append({"case": name, "status": "skipped", "reason": "render failure"})

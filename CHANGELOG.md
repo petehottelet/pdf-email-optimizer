@@ -6,6 +6,45 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-21
+
+### Changed
+
+- **BREAKING (library API):** The core `optimize()` and `audit()` functions now
+  take a typed `OptimizeConfig` dataclass instead of an `argparse.Namespace`.
+  Import the new public surface directly:
+  `from pdf_email_optimizer import optimize, audit, OptimizeConfig`. The CLI is
+  unchanged — same flags, same behavior, same JSON output.
+- **BREAKING (internal layout):** The 1,426-line `pdf_email_optimizer.optimizer`
+  module was split into focused modules: `config`, `profiles`, `targets`,
+  `input_source`, `images`, `candidates`, `render_qa`, `ghostscript`,
+  `pdf_inspect`, `pipeline`, `reporting`, `cli`, `errors`, and `utils`. The old
+  `pdf_email_optimizer.optimizer` module remains as a tombstone that raises an
+  informative `ImportError` pointing each moved name to its new home.
+
+### Added
+
+- Typed `OptimizeConfig` (with `resolved()` and `from_cli_args()`) and an
+  `OptimizeSummary` `TypedDict` describing the result contract.
+- `errors` module with a `PdfEmailOptimizerError` base and
+  `UnsupportedInputError` (also a `ValueError` for backwards compatibility).
+- Image-encoding detection in `audit()`: counts of `jpeg2000_images`,
+  `ccitt_images`, `jbig2_images`, and `pypdf_unsupported_images`, plus a
+  `recommended_strategy` (`"ghostscript"`, `"bilevel"`, or `null`).
+- Automatic Ghostscript routing for inputs whose images use encodings the
+  built-in recompressor cannot process (JPEG2000 / CCITT / JBIG2). A
+  profile-default `--ghostscript never` is upgraded to `auto` in this case so
+  the heaviest images aren't silently left unoptimized; an explicit
+  `--ghostscript never` is still respected.
+
+### Notes for upgraders
+
+- CLI users: nothing to change.
+- Library users: replace `optimize(parsed_args)` with
+  `optimize(OptimizeConfig(input=..., ...))` or
+  `optimize(OptimizeConfig.from_cli_args(parsed_args))`, and import helpers from
+  their new modules (e.g. `from pdf_email_optimizer.cli import build_parser`).
+
 ## [2.0.0] - 2026-06-21
 
 ### Added

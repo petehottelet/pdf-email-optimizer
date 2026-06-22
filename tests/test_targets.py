@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from argparse import Namespace
-
 import pytest
 
-from pdf_email_optimizer.optimizer import output_path_for, parse_mb_range, resolve_target_window
+from pdf_email_optimizer.targets import output_path_for, parse_mb_range, resolve_target_window
 
 
 def test_parse_target_range() -> None:
@@ -19,15 +17,14 @@ def test_parse_target_range_rejects_non_positive_values() -> None:
 
 
 def test_target_alias_accepts_units() -> None:
-    args = Namespace(target_range_mb=None, target="7mb", target_min_mb=None, target_mb=99, preferred_mb=None)
-    target = resolve_target_window(args)
+    target = resolve_target_window(target_range_mb=None, target="7mb", target_min_mb=None, target_mb=99, preferred_mb=None)
     assert target["max_mb"] == 7.0
     assert target["min_mb"] is None
 
 
 def test_default_target_is_7mb() -> None:
-    args = Namespace(target_range_mb=None, target=None, target_min_mb=None, target_mb=7.0, preferred_mb=None)
-    assert resolve_target_window(args)["label"] == "7 MB"
+    target = resolve_target_window(target_range_mb=None, target=None, target_min_mb=None, target_mb=7.0, preferred_mb=None)
+    assert target["label"] == "7 MB"
 
 
 def test_output_path_never_equals_input(tmp_path) -> None:

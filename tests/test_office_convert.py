@@ -13,8 +13,10 @@ from pathlib import Path
 import pytest
 from conftest import write_blank_pdf
 
-from pdf_email_optimizer import office_convert
-from pdf_email_optimizer.optimizer import build_parser, optimize, resolve_input_source
+from pdf_email_optimizer import office_convert, optimize
+from pdf_email_optimizer.cli import build_parser
+from pdf_email_optimizer.config import OptimizeConfig
+from pdf_email_optimizer.input_source import resolve_input_source
 
 
 def test_office_suffix_detection(tmp_path: Path) -> None:
@@ -101,7 +103,7 @@ def test_end_to_end_office_input(tmp_path: Path) -> None:
     )
     output = tmp_path / "report_email.pdf"
     args = build_parser().parse_args([str(rtf), str(output), "--target-mb", "5", "--skip-render-qa"])
-    summary = optimize(args)
+    summary = optimize(OptimizeConfig.from_cli_args(args))
 
     assert output.exists()
     assert summary["output"] == str(output)

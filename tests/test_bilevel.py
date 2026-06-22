@@ -7,12 +7,17 @@ from pathlib import Path
 import pytest
 from conftest import write_image_pdf
 
-from pdf_email_optimizer import bilevel
-from pdf_email_optimizer.optimizer import build_parser, optimize
+from pdf_email_optimizer import bilevel, optimize
+from pdf_email_optimizer.cli import build_parser
+from pdf_email_optimizer.config import OptimizeConfig
 
 
 def parse_args(*args: str):
     return build_parser().parse_args(list(args))
+
+
+def cfg(*args: str) -> OptimizeConfig:
+    return OptimizeConfig.from_cli_args(parse_args(*args))
 
 
 def test_bilevel_default_value_uses_module_default(tmp_path: Path) -> None:
@@ -65,8 +70,7 @@ def test_optimize_bilevel_end_to_end(tmp_path: Path) -> None:
 def test_cli_bilevel_short_circuits_optimize(tmp_path: Path) -> None:
     src = write_image_pdf(tmp_path / "src.pdf")
     out = tmp_path / "out.pdf"
-    args = parse_args(str(src), str(out), "--bilevel", "100", "--target-mb", "5")
-    summary = optimize(args)
+    summary = optimize(cfg(str(src), str(out), "--bilevel", "100", "--target-mb", "5"))
 
     assert summary["strategy"] == "bilevel-g4"
     assert summary["bilevel_dpi"] == 100

@@ -35,6 +35,23 @@ Example:
 }
 ```
 
-The `strategy` field is one of `structural-cleanup`, `pikepdf-structural`, `image-recompress`, `ghostscript-fallback`, or `unknown`.
+The `strategy` field is one of `structural-cleanup`, `pikepdf-structural`, `image-recompress`, `ghostscript-fallback`, `bilevel-g4`, or `unknown`.
 
 Treat `warnings` as user-facing. Agents and automation should relay target misses, encrypted PDF failures, transparency concerns, and Ghostscript fallback warnings.
+
+## Library usage
+
+The same summary dict is returned by the Python API. As of v3.0.0 the core
+functions take a typed `OptimizeConfig` instead of parsed CLI args:
+
+```python
+from pdf_email_optimizer import optimize, audit, OptimizeConfig
+
+summary = optimize(OptimizeConfig(input="deck.pdf", target_mb=7, profile="balanced"))
+report = audit("deck.pdf")  # inspection + recommended_profile / recommended_strategy
+```
+
+`audit()` additionally reports image-encoding counts (`jpeg2000_images`,
+`ccitt_images`, `jbig2_images`, `pypdf_unsupported_images`) and a
+`recommended_strategy` (`"ghostscript"`, `"bilevel"`, or `null`) for inputs the
+built-in recompressor can't process directly.

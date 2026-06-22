@@ -21,13 +21,15 @@ reportlab = pytest.importorskip("reportlab", reason="reportlab is required to ge
 import make_fixtures  # noqa: E402  (added to pythonpath via pyproject)
 from pypdf.errors import PdfReadError  # noqa: E402
 
-from pdf_email_optimizer.optimizer import audit_pdf, build_parser, optimize  # noqa: E402
+from pdf_email_optimizer import audit, optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
 
 pytestmark = pytest.mark.integration
 
 
-def _args(*argv: str):
-    return build_parser().parse_args(list(argv))
+def _args(*argv: str) -> OptimizeConfig:
+    return OptimizeConfig.from_cli_args(build_parser().parse_args(list(argv)))
 
 
 @pytest.fixture(scope="session")
@@ -90,9 +92,9 @@ def test_transparency_flattened_when_requested(fixtures: dict[str, Path], tmp_pa
 
 
 def test_forms_and_annotations_warn(fixtures: dict[str, Path], tmp_path: Path) -> None:
-    audit = audit_pdf(fixtures["forms_annotations"])
-    assert audit["forms"] is True
-    assert audit["annotations"] >= 1
+    audit_summary = audit(fixtures["forms_annotations"])
+    assert audit_summary["forms"] is True
+    assert audit_summary["annotations"] >= 1
 
     summary, output = _optimize(fixtures["forms_annotations"], tmp_path, "--quality")
     assert output.exists()
@@ -122,6 +124,6 @@ def test_encrypted_pdf_raises_clear_error(fixtures: dict[str, Path], tmp_path: P
 
 
 def test_encrypted_audit_reports_unlock_guidance(fixtures: dict[str, Path]) -> None:
-    audit = audit_pdf(fixtures["encrypted_pdf"])
-    assert audit["encrypted"] is True
-    assert any("Unlock" in warning for warning in audit["warnings"])
+    audit_summary = audit(fixtures["encrypted_pdf"])
+    assert audit_summary["encrypted"] is True
+    assert any("Unlock" in warning for warning in audit_summary["warnings"])

@@ -35,11 +35,10 @@ SRC_DIR = PROJECT_ROOT / "src"
 if SRC_DIR.exists():
     sys.path.insert(0, str(SRC_DIR))
 
-from pdf_email_optimizer.optimizer import (  # noqa: E402
-    build_parser,
-    compare_render_quality,
-    optimize,
-)
+from pdf_email_optimizer import optimize  # noqa: E402
+from pdf_email_optimizer.cli import build_parser  # noqa: E402
+from pdf_email_optimizer.config import OptimizeConfig  # noqa: E402
+from pdf_email_optimizer.render_qa import compare_render_quality  # noqa: E402
 
 GHOSTSCRIPT_DEFAULT = r"C:\Program Files\gs\gs10.07.1\bin"
 
@@ -274,7 +273,7 @@ def _args_for(plan: SamplePlan, source: Path, output: Path) -> Any:
         argv.extend(["--image-quality", str(plan.image_quality)])
     if plan.no_image_recompress:
         argv.append("--no-image-recompress")
-    return parser.parse_args(argv)
+    return OptimizeConfig.from_cli_args(parser.parse_args(argv))
 
 
 def _bytes_to_mb(value: int) -> float:
